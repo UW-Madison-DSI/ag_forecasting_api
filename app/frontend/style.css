@@ -1,0 +1,55 @@
+/* Import fonts */
+@import url('https://fonts.googleapis.com/css2?family=Red+Hat+Text:ital,wght@0,300..700;1,300..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Red+Hat+Display:ital,wght@0,300..900;1,300..900&family=Red+Hat+Text:ital,wght@0,300..700;1,300..700&display=swap');
+
+/* Font styles */
+:root {
+    --font-family-sans-serif: "Red Hat Text", FreeSerif, serif;
+    --RedHatDisplay: "Red Hat Display", sans-serif, bold;
+
+    /* Color palette */
+    --primary-color: #c5050c;
+    --accent-red: #9B0000;
+    --background-grey: #F7F7F7;
+    --link-blue: #0479A8;
+    --text-grey: #333333;
+    --chunk-white: #fff;
+
+    /* Element backgrounds and colors */
+    --navbar-bg: var(--primary-color);
+    --body-bg: var(--background-grey);
+    --body-color: var(--text-grey);
+    --link-color: var(--link-blue);
+    --code-bg: var(--chunk-white);
+    --code-color: var(--accent-red);
+}
+
+/* Applying background and text colors */
+body {
+    background-color: var(--body-bg);
+    color: var(--body-color);
+}
+
+/* Header styling */
+h1, h2 {
+    color: var(--text-grey);
+    font-family: var(--RedHatDisplay);
+    font-weight: 800;
+}
+
+/* Navbar styles */
+.navbar-title {
+    font-family: var(--RedHatDisplay);
+    font-weight: 800;
+}
+
+/* Hyperlink styles */
+a {
+    color: var(--link-color);
+}
+
+/* Styles for code elements */
+code {
+    background-color: var(--code-bg);
+    color: var(--code-color);
+}
