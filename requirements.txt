@@ -13,4 +13,3 @@ streamlit_folium==0.22.0
 httpx
 pydantic
 typing
-enum
