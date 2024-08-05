@@ -3,6 +3,7 @@ import streamlit as st
 from streamlit_folium import st_folium
 import requests
 from geopy.distance import geodesic
+from app.stations import stationslist
 
 def map_creation1(stationslist, highlight_station_id=None):
     """
