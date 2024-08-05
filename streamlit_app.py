@@ -129,7 +129,7 @@ def retrieve_frompywisconet(station_code: str, this_station: str) -> bool:
     st.write(f"### Station Weather Trend {this_station}")
 
     # Plotting
-    sns.lineplot(x="collection_time", y="value", hue="measure_type", data=df)
+    sns.lineplot(x="datetime", y="value", hue="measure_type", data=df)
     plt.xticks(rotation=15)
 
     # Display the plot in Streamlit
