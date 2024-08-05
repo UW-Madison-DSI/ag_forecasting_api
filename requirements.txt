@@ -1,0 +1,12 @@
+folium==0.17.0
+geojson==3.1.0
+geopy==2.4.1
+leafmap==0.36.2
+matplotlib==3.9.1
+numpy==2.0.1
+pandas==2.2.2
+plotly==5.23.0
+requests==2.32.3
+seaborn==0.13.2
+streamlit==1.37.0
+streamlit_folium==0.22.0

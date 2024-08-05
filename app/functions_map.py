@@ -5,6 +5,12 @@ import requests
 from geopy.distance import geodesic
 
 def map_creation1(stationslist, highlight_station_id=None):
+    """
+
+    :param stationslist:
+    :param highlight_station_id:
+    :return:
+    """
     # Create a map centered at the average latitude and longitude of all stations
     MAP_TILER_KEY = st.secrets["MAP_TILER_KEY"]
     average_latitude = sum(station["latitude"] for station in stationslist.values()) / len(stationslist)

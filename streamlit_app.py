@@ -157,6 +157,11 @@ def get_key_by_name(stationslist, name):
 
 
 def summarize_data(df):
+    """
+
+    :param df:
+    :return:
+    """
     #st.write(df)
     summary = []
     for param in df['parameter'].unique():
@@ -179,6 +184,10 @@ def summarize_data(df):
 
 
 def main():
+    """
+
+    :return:
+    """
     # stations
     data = pd.DataFrame.from_dict(stationslist, orient='index')
     data.reset_index(inplace=True)
