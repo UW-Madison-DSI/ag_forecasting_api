@@ -93,7 +93,7 @@ def retrieve_frompywisconet(station_code: str, this_station: str) -> bool:
 
         # Convert response to DataFrame
         df = bulk_measures_to_df(bulk_measure_response)
-        return df, filtered_field_standard_names
+        return df
 
     def get_cached_data():
         """Fetches cached data if available and valid."""
@@ -117,11 +117,10 @@ def retrieve_frompywisconet(station_code: str, this_station: str) -> bool:
             json.dump(cache, file)
 
     # Try to get cached data
-    df = get_cached_data()
-    if df is None:
-        df, filtered_field_standard_names = fetch_data_from_api()
-
-        cache_data(df)
+    #df = get_cached_data()
+    #if df is None:
+    df = fetch_data_from_api()
+    #cache_data(df)
 
     df['datetime'] = pd.to_datetime(df['collection_time'])
 
@@ -139,6 +138,7 @@ def retrieve_frompywisconet(station_code: str, this_station: str) -> bool:
     df['timestamp'] = df['collection_time']
     summary_df = summarize_data(df)
     st.dataframe(summary_df)
+
 
 def get_key_by_name(stationslist, name):
     """Finds the key of a dictionary entry given the name.
