@@ -11,3 +11,6 @@ seaborn==0.13.2
 streamlit==1.37.0
 streamlit_folium==0.22.0
 httpx
+pydantic
+typing
+enum
