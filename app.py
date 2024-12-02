@@ -5,6 +5,7 @@ from pywisconet.process import *
 from starlette.middleware.wsgi import WSGIMiddleware
 from datetime import datetime
 from zoneinfo import ZoneInfo
+import pandas as pd
 
 app = FastAPI()
 
@@ -21,10 +22,12 @@ def station_fields_query(station_id: str):
 
 @app.get("/all_stations/{min_days_active}")
 def stations_query(
-        min_days_active: int
+        min_days_active: int,
+        start_date: str = Query(..., description="Start date in format YYYY-MM-DD (e.g., 2024-07-01)")
 ):
     try:
-        result = all_stations(min_days_active)
+        start_date = datetime.strptime(start_date.strip(), "%Y-%m-%d").replace(tzinfo=ZoneInfo("UTC"))
+        result = all_stations(min_days_active, start_date)
         if result is None:
             raise HTTPException(status_code=404, detail=f"Stations not found")
         return result
@@ -34,29 +37,59 @@ def stations_query(
 
 @app.get('/bulk_measures/{station_id}')
 def bulk_measures_query(
-        station_id: str,
-        start_date: str = Query(..., description="Start date in format YYYY-MM-DD (e.g., 2024-07-01)"),
-        end_date: str = Query(..., description="End date in format YYYY-MM-DD (e.g., 2024-07-02)")
+    station_id: str,
+    start_date: str = Query(..., description="Start date in format YYYY-MM-DD (e.g., 2024-07-01)"),
+    end_date: str = Query(..., description="End date in format YYYY-MM-DD (e.g., 2024-07-02)"),
+    measurements: str = Query(..., description="Measurements (e.g., AIRTEMP, DEW_POINT, WIND_SPEED, RELATIVE_HUMIDITY)"),
+    units: str = Query(..., description="Units for measurements (e.g., FAHRENHEIT, PCT, METERSPERSECOND, MPH)"),
+    frequency: str = Query(..., description="Frequency of measurements (e.g., MIN60, MIN5, DAILY)")
 ):
     try:
+        # Parse input dates
         start_date = datetime.strptime(start_date.strip(), "%Y-%m-%d").replace(tzinfo=ZoneInfo("UTC"))
         end_date = datetime.strptime(end_date.strip(), "%Y-%m-%d").replace(tzinfo=ZoneInfo("UTC"))
     except ValueError as e:
         return {"error": f"Invalid date format. Use YYYY-MM-DD. {e}"}
-    print("Dates ", start_date, end_date)
 
+    print("Dates:", start_date, end_date)
+
+    # Retrieve fields for the station
     this_station_fields = station_fields(station_id)
-    filtered_field_standard_names = filter_fields(
-        this_station_fields,
-        criteria=[
-            MeasureType.AIRTEMP,
-            MeasureType.DEW_POINT,
-            CollectionFrequency.MIN60,
-            Units.FAHRENHEIT
-        ]
-    )
-    print("Filtered stations ", filtered_field_standard_names)
+    if measurements in ['RELATIVE_HUMIDITY'] and units == 'PCT':
+        filtered_field_standard_names = filter_fields(
+            this_station_fields,
+            criteria=[
+                MeasureType.RELATIVE_HUMIDITY,
+                CollectionFrequency[frequency],
+                Units[units]
+            ]
+        )
+        print(units, "Filtered stations:", filtered_field_standard_names)
 
+    elif (measurements in ['AIRTEMP', 'DEW_POINT'] and units in ['FAHRENHEIT', 'CELSIUS']):
+        filtered_field_standard_names = filter_fields(
+            this_station_fields,
+            criteria=[
+                MeasureType.AIRTEMP,
+                MeasureType.DEW_POINT,
+                CollectionFrequency[frequency],
+                Units[units]
+            ]
+        )
+        print(units, "Filtered stations:", filtered_field_standard_names)
+
+    elif (measurements=='WIND_SPEED' and units in ['METERSPERSECOND','MPH']):
+        filtered_field_standard_names = filter_fields(
+            this_station_fields,
+            criteria=[
+                MeasureType.WIND_SPEED,
+                CollectionFrequency[frequency],
+                Units[units]
+            ]
+        )
+        print(units, "Filtered stations:", filtered_field_standard_names)
+
+    # Fetch data for the date range
     bulk_measure_response = bulk_measures(
         station_id,
         start_date,
@@ -64,7 +97,10 @@ def bulk_measures_query(
         filtered_field_standard_names
     )
     df = bulk_measures_to_df(bulk_measure_response)
-    return df.to_dict(orient='records')
+
+    # Return data as a dictionary with local times
+    return df.to_dict(orient="records")
+
 
 #Check this one
 #@app.get("/all_data_for_station/{station_id}")
