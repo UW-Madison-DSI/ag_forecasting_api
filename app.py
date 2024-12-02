@@ -3,7 +3,6 @@ from pywisconet.data import *
 from pywisconet.process import *
 from starlette.middleware.wsgi import WSGIMiddleware
 
-# Initialize FastAPI app
 app = FastAPI()
 
 # Testing station_fields
@@ -45,5 +44,4 @@ def create_wsgi_app():
 
     return app
 
-# This is the key part for RStudio Connect
 wsgi_app = WSGIMiddleware(create_wsgi_app())
