@@ -3,7 +3,7 @@
   "locale": ".UTF-8",
   "metadata": {
    "appmode": "python-api",
-   "entrypoint": "uvicorn app:app --host 0.0.0.0 --port 8000"
+   "entrypoint": "app:app --host 0.0.0.0 --port 8000"
   },
   "python": {
     "version": "3.10.0",
