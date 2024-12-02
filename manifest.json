@@ -3,7 +3,8 @@
   "locale": ".UTF-8",
   "metadata": {
    "appmode": "python-api",
-   "entrypoint": "app:app"
+   "entrypoint": "app:app",
+    "server": "uvicorn"
   },
   "python": {
     "version": "3.10.0",

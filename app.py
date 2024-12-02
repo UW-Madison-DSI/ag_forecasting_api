@@ -1,11 +1,12 @@
 from fastapi import FastAPI, HTTPException
 from pywisconet.data import *
 from pywisconet.process import *
+import uvicorn
 
 # Initialize FastAPI app
 app = FastAPI()
 
-# Example endpoint: station_fields
+# Your existing routes
 @app.get("/station_fields/{station_id}")
 def read_weather(station_id: str):
     try:
@@ -16,7 +17,10 @@ def read_weather(station_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Add a root route to resolve the 404 on root
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the Wisconsin Weather API"}
+
+# Add this for local testing and potential server compatibility
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
