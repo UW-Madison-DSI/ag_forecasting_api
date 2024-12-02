@@ -28,7 +28,7 @@ def all_stations(n_days_active: int) -> list[Station]:
 
         # Calculate the number of days the station has been active
         days_active = (current_date - earliest_api_date).days
-        print("Days active:", days_active)
+        #print("Days active:", days_active)
         elevation = float(station.pop("elevation"))
         latitude = float(station.pop("latitude"))
         longitude = float(station.pop("longitude"))
