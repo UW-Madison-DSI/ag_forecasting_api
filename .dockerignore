@@ -1,0 +1,37 @@
+# Version control systems
+.git
+.gitignore
+
+# Python cache and environment
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.env
+.venv
+venv
+
+# IDE files
+.idea
+.vscode
+*.swp
+*.swo
+
+# Jupyter notebooks
+notebooks/*.ipynb
+
+# Logs and databases
+*.log
+*.sqlite
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Build and distribution
+dist/
+build/
+*.egg-info/
+
+# Poetry
+poetry.lock

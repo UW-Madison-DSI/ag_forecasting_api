@@ -2,11 +2,12 @@
   "version": 1,
   "locale": ".UTF-8",
   "metadata": {
-    "appmode": "python-api",
-    "entrypoint": "utils"
+   "appmode": "python-api",
+   "entrypoint": "app:app",
+    "server": "uvicorn"
   },
   "python": {
-    "version": "3.10.0",
+    "version": "3.11.6",
     "package_manager": {
       "name": "pip",
       "version": "24.2",
