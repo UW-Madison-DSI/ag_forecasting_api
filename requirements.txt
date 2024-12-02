@@ -12,3 +12,4 @@ httpx
 pydantic
 typing
 httpx
+fastapi
