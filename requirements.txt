@@ -2,6 +2,7 @@ fastapi>=0.95.0
 uvicorn>=0.22.0
 starlette>=0.26.1
 pydantic>=1.10.7
+rsconnect-python
 folium==0.17.0
 geojson==3.1.0
 geopy==2.4.1
