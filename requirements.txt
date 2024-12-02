@@ -1,3 +1,5 @@
+fastapi==0.115.5
+uvicorn==0.32.1
 folium==0.17.0
 geojson==3.1.0
 geopy==2.4.1
@@ -12,5 +14,3 @@ httpx
 pydantic
 typing
 httpx
-fastapi
-uvicorn
