@@ -1,39 +1,51 @@
 from pathlib import Path
 import httpx
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from pywisconet.schema import (
        BASE_URL, Station, Field, BulkMeasures, 
 )
 
 
-def all_stations() -> list[Station]:
+def all_stations(n_days_active: int,
+                 start_date: datetime) -> list[Station]:
     """
     Get all current Wisconet stations.
     :return: list of Station objects
     """
     route = "/stations/"
     stations = []
+    if n_days_active is None:
+        n_days_active=0
+
     with httpx.Client(base_url=BASE_URL) as client:
         response = client.get(route)
         response.raise_for_status()
-    
+
     for station in response.json():
         station_tz = station.pop("station_timezone")
-        earliest_api_date = datetime.strptime(station.pop("earliest_api_date"), "%m/%d/%Y")
+        earliest_api_date = datetime.strptime(station.pop("earliest_api_date"), "%m/%d/%Y").replace(
+            tzinfo=ZoneInfo("UTC"))
+        current_date = start_date.astimezone(ZoneInfo("UTC"))
+        days_active = (current_date - earliest_api_date).days
+
+        #print("Days active:", days_active)
         elevation = float(station.pop("elevation"))
         latitude = float(station.pop("latitude"))
         longitude = float(station.pop("longitude"))
-        stations.append(
-             Station(
-                station_timezone=station_tz,
-                earliest_api_date=earliest_api_date,
-                elevation=elevation,
-                latitude=latitude,
-                longitude=longitude,
-                **station,
-             )
-        )
+        if days_active > n_days_active:
+            stations.append(
+                Station(
+                    station_timezone=station_tz,
+                    earliest_api_date=earliest_api_date,
+                    days_active=days_active,
+                    elevation=elevation,
+                    latitude=latitude,
+                    longitude=longitude,
+                    **station,  # Include any additional fields dynamically
+                )
+            )
     return stations
 
 

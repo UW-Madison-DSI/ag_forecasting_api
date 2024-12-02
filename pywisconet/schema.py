@@ -43,6 +43,7 @@ class Station(BaseModel):
     station_slug: str | None
     station_timezone: str | None
     earliest_api_date: datetime | None
+    days_active: float | None
     campbell_cloud_id: str | None
     legacy_id: str | None
 
