@@ -34,7 +34,7 @@ def all_stations(n_days_active: int,
         elevation = float(station.pop("elevation"))
         latitude = float(station.pop("latitude"))
         longitude = float(station.pop("longitude"))
-        if days_active > n_days_active:
+        if (days_active > n_days_active):
             stations.append(
                 Station(
                     station_timezone=station_tz,
