@@ -7,33 +7,43 @@ from pywisconet.schema import (
 )
 
 
-def all_stations() -> list[Station]:
+def all_stations(n_days_active: int) -> list[Station]:
     """
     Get all current Wisconet stations.
     :return: list of Station objects
     """
     route = "/stations/"
     stations = []
+    if n_days_active is None:
+        n_days_active=0
+
     with httpx.Client(base_url=BASE_URL) as client:
         response = client.get(route)
         response.raise_for_status()
-    
+
     for station in response.json():
         station_tz = station.pop("station_timezone")
         earliest_api_date = datetime.strptime(station.pop("earliest_api_date"), "%m/%d/%Y")
+        current_date = datetime.now()
+
+        # Calculate the number of days the station has been active
+        days_active = (current_date - earliest_api_date).days
+        print("Days active:", days_active)
         elevation = float(station.pop("elevation"))
         latitude = float(station.pop("latitude"))
         longitude = float(station.pop("longitude"))
-        stations.append(
-             Station(
-                station_timezone=station_tz,
-                earliest_api_date=earliest_api_date,
-                elevation=elevation,
-                latitude=latitude,
-                longitude=longitude,
-                **station,
-             )
-        )
+        if days_active > n_days_active:
+            stations.append(
+                Station(
+                    station_timezone=station_tz,
+                    earliest_api_date=earliest_api_date,
+                    days_active=days_active,
+                    elevation=elevation,
+                    latitude=latitude,
+                    longitude=longitude,
+                    **station,  # Include any additional fields dynamically
+                )
+            )
     return stations
 
 
