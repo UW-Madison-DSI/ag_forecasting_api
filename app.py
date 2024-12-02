@@ -40,8 +40,8 @@ def bulk_measures_query(
     station_id: str,
     start_date: str = Query(..., description="Start date in format YYYY-MM-DD (e.g., 2024-07-01)"),
     end_date: str = Query(..., description="End date in format YYYY-MM-DD (e.g., 2024-07-02)"),
-    measurements: str = Query(..., description="Measurements (e.g., AIRTEMP, DEW_POINT, WIND_SPEED, RELATIVE_HUMIDITY)"),
-    units: str = Query(..., description="Units for measurements (e.g., FAHRENHEIT, PCT, METERSPERSECOND, MPH)"),
+    measurements: str = Query(..., description="Measurements (e.g., AIRTEMP, DEW_POINT, WIND_SPEED, RELATIVE_HUMIDITY, the units are F, M/S and % respectively)"),
+    #units: str = Query(..., description="Units for measurements (e.g., FAHRENHEIT, PCT, METERSPERSECOND, MPH)"),
     frequency: str = Query(..., description="Frequency of measurements (e.g., MIN60, MIN5, DAILY)")
 ):
     try:
@@ -55,40 +55,45 @@ def bulk_measures_query(
 
     # Retrieve fields for the station
     this_station_fields = station_fields(station_id)
-    if measurements in ['RELATIVE_HUMIDITY'] and units == 'PCT':
+    if measurements =='RELATIVE_HUMIDITY':
         filtered_field_standard_names = filter_fields(
             this_station_fields,
             criteria=[
                 MeasureType.RELATIVE_HUMIDITY,
                 CollectionFrequency[frequency],
-                Units[units]
+                Units.PCT
             ]
         )
-        print(units, "Filtered stations:", filtered_field_standard_names)
-
-    elif (measurements in ['AIRTEMP', 'DEW_POINT'] and units in ['FAHRENHEIT', 'CELSIUS']):
+    elif measurements =='AIRTEMP':
+        print('this_station_fields ', this_station_fields)
         filtered_field_standard_names = filter_fields(
             this_station_fields,
             criteria=[
                 MeasureType.AIRTEMP,
-                MeasureType.DEW_POINT,
                 CollectionFrequency[frequency],
-                Units[units]
+                Units.FAHRENHEIT
             ]
         )
-        print(units, "Filtered stations:", filtered_field_standard_names)
-
-    elif (measurements=='WIND_SPEED' and units in ['METERSPERSECOND','MPH']):
+    elif measurements == 'DEW_POINT':
+        filtered_field_standard_names = filter_fields(
+            this_station_fields,
+            criteria=[
+                MeasureType.DEW_POINT,
+                CollectionFrequency[frequency],
+                Units.FAHRENHEIT
+            ]
+        )
+    elif measurements== 'WIND_SPEED':
         filtered_field_standard_names = filter_fields(
             this_station_fields,
             criteria=[
                 MeasureType.WIND_SPEED,
                 CollectionFrequency[frequency],
-                Units[units]
+                Units.METERSPERSECOND
             ]
         )
-        print(units, "Filtered stations:", filtered_field_standard_names)
 
+    print("Filtered stations:", filtered_field_standard_names)
     # Fetch data for the date range
     bulk_measure_response = bulk_measures(
         station_id,
