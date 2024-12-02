@@ -6,7 +6,7 @@ from starlette.middleware.wsgi import WSGIMiddleware
 # Initialize FastAPI app
 app = FastAPI()
 
-# Your existing routes
+# Testing station_fields
 @app.get("/station_fields/{station_id}")
 def read_weather(station_id: str):
     try:
