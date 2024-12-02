@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from pywisconet.data import *
 from pywisconet.process import *
-import uvicorn
+from starlette.middleware.wsgi import WSGIMiddleware
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -21,6 +21,29 @@ def read_weather(station_id: str):
 def read_root():
     return {"message": "Welcome to the Wisconsin Weather API"}
 
-# Add this for local testing and potential server compatibility
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+# Create a WSGI application
+from starlette.applications import Starlette
+from starlette.routing import Mount
+from starlette.types import ASGIApp
+
+def create_wsgi_app():
+    async def app(scope, receive, send):
+        if scope["type"] == "http":
+            # Delegate to FastAPI for HTTP requests
+            await app(scope, receive, send)
+        else:
+            # Handle other types of requests
+            await send({
+                "type": "http.response.start",
+                "status": 404,
+                "headers": [(b"content-type", b"text/plain")]
+            })
+            await send({
+                "type": "http.response.body",
+                "body": b"Not Found"
+            })
+
+    return app
+
+# This is the key part for RStudio Connect
+wsgi_app = WSGIMiddleware(create_wsgi_app())
