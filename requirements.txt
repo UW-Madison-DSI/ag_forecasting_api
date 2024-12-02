@@ -13,3 +13,4 @@ pydantic
 typing
 httpx
 fastapi
+uvicorn
