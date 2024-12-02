@@ -2,8 +2,8 @@
   "version": 1,
   "locale": ".UTF-8",
   "metadata": {
-    "appmode": "python-api",
-    "entrypoint": "utils"
+  "appmode": "python-api",
+  "entrypoint": "app:app"
   },
   "python": {
     "version": "3.10.0",
