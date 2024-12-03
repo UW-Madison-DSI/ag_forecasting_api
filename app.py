@@ -105,15 +105,6 @@ def bulk_measures_query(
                 ]
             )
 
-        print("Filtered stations:", filtered_field_standard_names)
-
-
-        print(
-            station_id,
-            start_date,
-            end_date,
-            filtered_field_standard_names
-        )
         # Fetch data for the date range
         bulk_measure_response = bulk_measures(
             station_id,
@@ -132,6 +123,79 @@ def bulk_measures_query(
         # Return data as a dictionary with local times
         return df[cols].to_dict(orient="records")
 
+@app.get('/moving_averages/{station_id}')
+def moving_averages_query(
+    station_id: str,
+    end_date: str = Query(..., description="End date in format YYYY-MM-DD (e.g., 2024-07-02) assumed CT"),
+    disease_name: str = Query(..., description="Disease name (e.g., tarspot, gls, frogeye_ls, sporecaster")
+):
+    cols = ['collection_time', 'collection_time_ct', 'hour_ct',
+            'value', 'id', 'collection_frequency',
+            'final_units', 'measure_type','qualifier', #'source_field',
+            'standard_name', 'units_abbrev']
+    start_date = end_date - days(31)
+
+    print("Dates:", end_date, " start_date ", start_date)
+
+    this_station_fields = station_fields(station_id)
+
+    if disease_name =='tarspot':
+        # Retrieve fields for the station
+        filtered_field_standard_names = filter_fields(
+            this_station_fields,
+            criteria=[
+                MeasureType.RELATIVE_HUMIDITY,
+                MeasureType.AIRTEMP,
+                CollectionFrequency[frequency]
+                ]
+            )
+    elif disease_name == 'gls':
+        filtered_field_standard_names = filter_fields(
+            this_station_fields,
+            criteria=[
+                MeasureType.RELATIVE_HUMIDITY,
+                MeasureType.AIRTEMP,
+                CollectionFrequency[frequency]
+            ]
+        )
+
+    elif disease_name == 'frogeye_ls':
+        filtered_field_standard_names = filter_fields(
+            this_station_fields,
+            criteria=[
+                MeasureType.RELATIVE_HUMIDITY,
+                MeasureType.AIRTEMP,
+                CollectionFrequency[frequency]
+            ]
+        )
+
+    elif disease_name == 'sporecaster':
+        filtered_field_standard_names = filter_fields(
+            this_station_fields,
+            criteria=[
+                MeasureType.RELATIVE_HUMIDITY,
+                MeasureType.AIRTEMP,
+                CollectionFrequency[frequency]
+            ]
+        )
+
+    # Fetch data for the date range
+    bulk_measure_response = bulk_measures(
+            station_id,
+            start_date,
+            end_date,
+            filtered_field_standard_names
+        )
+
+    df = bulk_measures_to_df(bulk_measure_response)
+    df['collection_time_utc'] = pd.to_datetime(df['collection_time']).dt.tz_localize('UTC')
+    ## Fix CT because all the Wisconet Stations are in CT
+    df['collection_time_ct']=df['collection_time_utc'].dt.tz_convert('US/Central')
+    df['hour_ct'] = df['collection_time_ct'].dt.hour
+
+    print(df[cols])
+    # Return data as a dictionary with local times
+    return df[cols].to_dict(orient="records")
 
 #Check this one
 #@app.get("/all_data_for_station/{station_id}")
