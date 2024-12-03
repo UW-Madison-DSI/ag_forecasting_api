@@ -6,6 +6,7 @@ from starlette.middleware.wsgi import WSGIMiddleware
 from datetime import datetime
 from zoneinfo import ZoneInfo
 import pandas as pd
+from pytz import timezone
 
 app = FastAPI()
 
@@ -38,73 +39,98 @@ def stations_query(
 @app.get('/bulk_measures/{station_id}')
 def bulk_measures_query(
     station_id: str,
-    start_date: str = Query(..., description="Start date in format YYYY-MM-DD (e.g., 2024-07-01)"),
-    end_date: str = Query(..., description="End date in format YYYY-MM-DD (e.g., 2024-07-02)"),
-    measurements: str = Query(..., description="Measurements (e.g., AIRTEMP, DEW_POINT, WIND_SPEED, RELATIVE_HUMIDITY, the units are F, M/S and % respectively)"),
+    start_date: str = Query(..., description="Start date in format YYYY-MM-DD (e.g., 2024-07-01) assumed CT"),
+    end_date: str = Query(..., description="End date in format YYYY-MM-DD (e.g., 2024-07-02) assumed CT"),
+    measurements: str = Query(..., description="Measurements (e.g., AIRTEMP, DEW_POINT, WIND_SPEED, RELATIVE_HUMIDITY, ALL the units are F, M/S and % respectively, all means the last 4)"),
+    #measurements_list = None, #str = Query(..., description="List of measurements eg '60min_air_temp_f_avg', '60min_dew_point_f_avg', '60min_relative_humidity_pct_avg', '60min_wind_speed_mph_max', '60min_wind_speed_mph_avg', '60min_wind_speed_max_time'"),
     #units: str = Query(..., description="Units for measurements (e.g., FAHRENHEIT, PCT, METERSPERSECOND, MPH)"),
     frequency: str = Query(..., description="Frequency of measurements (e.g., MIN60, MIN5, DAILY)")
 ):
-    try:
-        # Parse input dates
-        start_date = datetime.strptime(start_date.strip(), "%Y-%m-%d").replace(tzinfo=ZoneInfo("UTC"))
-        end_date = datetime.strptime(end_date.strip(), "%Y-%m-%d").replace(tzinfo=ZoneInfo("UTC"))
-    except ValueError as e:
-        return {"error": f"Invalid date format. Use YYYY-MM-DD. {e}"}
+
+    cols = ['collection_time', 'collection_time_ct', 'hour_ct',
+            'value', 'id', 'collection_frequency',
+            'final_units', 'measure_type','qualifier', #'source_field',
+            'standard_name', 'units_abbrev']
 
     print("Dates:", start_date, end_date)
+    if measurements is not None:
+        # Retrieve fields for the station
+        this_station_fields = station_fields(station_id)
+        if measurements=='ALL':
+            filtered_field_standard_names = filter_fields(
+                this_station_fields,
+                criteria=[
+                    MeasureType.RELATIVE_HUMIDITY,
+                    MeasureType.AIRTEMP,
+                    MeasureType.DEW_POINT,
+                    MeasureType.WIND_SPEED,
+                    CollectionFrequency[frequency]
+                ]
+            )
+        if measurements =='RELATIVE_HUMIDITY':
+            filtered_field_standard_names = filter_fields(
+                this_station_fields,
+                criteria=[
+                    MeasureType.RELATIVE_HUMIDITY,
+                    CollectionFrequency[frequency],
+                    Units.PCT
+                ]
+            )
+        elif measurements =='AIRTEMP':
+            print('this_station_fields ', this_station_fields)
+            filtered_field_standard_names = filter_fields(
+                this_station_fields,
+                criteria=[
+                    MeasureType.AIRTEMP,
+                    CollectionFrequency[frequency],
+                    Units.FAHRENHEIT
+                ]
+            )
+        elif measurements == 'DEW_POINT':
+            filtered_field_standard_names = filter_fields(
+                this_station_fields,
+                criteria=[
+                    MeasureType.DEW_POINT,
+                    CollectionFrequency[frequency],
+                    Units.FAHRENHEIT
+                ]
+            )
+        elif measurements== 'WIND_SPEED':
+            filtered_field_standard_names = filter_fields(
+                this_station_fields,
+                criteria=[
+                    MeasureType.WIND_SPEED,
+                    CollectionFrequency[frequency],
+                    Units.METERSPERSECOND
+                ]
+            )
 
-    # Retrieve fields for the station
-    this_station_fields = station_fields(station_id)
-    if measurements =='RELATIVE_HUMIDITY':
-        filtered_field_standard_names = filter_fields(
-            this_station_fields,
-            criteria=[
-                MeasureType.RELATIVE_HUMIDITY,
-                CollectionFrequency[frequency],
-                Units.PCT
-            ]
+        print("Filtered stations:", filtered_field_standard_names)
+
+
+        print(
+            station_id,
+            start_date,
+            end_date,
+            filtered_field_standard_names
         )
-    elif measurements =='AIRTEMP':
-        print('this_station_fields ', this_station_fields)
-        filtered_field_standard_names = filter_fields(
-            this_station_fields,
-            criteria=[
-                MeasureType.AIRTEMP,
-                CollectionFrequency[frequency],
-                Units.FAHRENHEIT
-            ]
-        )
-    elif measurements == 'DEW_POINT':
-        filtered_field_standard_names = filter_fields(
-            this_station_fields,
-            criteria=[
-                MeasureType.DEW_POINT,
-                CollectionFrequency[frequency],
-                Units.FAHRENHEIT
-            ]
-        )
-    elif measurements== 'WIND_SPEED':
-        filtered_field_standard_names = filter_fields(
-            this_station_fields,
-            criteria=[
-                MeasureType.WIND_SPEED,
-                CollectionFrequency[frequency],
-                Units.METERSPERSECOND
-            ]
+        # Fetch data for the date range
+        bulk_measure_response = bulk_measures(
+            station_id,
+            start_date,
+            end_date,
+            filtered_field_standard_names
         )
 
-    print("Filtered stations:", filtered_field_standard_names)
-    # Fetch data for the date range
-    bulk_measure_response = bulk_measures(
-        station_id,
-        start_date,
-        end_date,
-        filtered_field_standard_names
-    )
-    df = bulk_measures_to_df(bulk_measure_response)
+        df = bulk_measures_to_df(bulk_measure_response)
+        df['collection_time_utc'] = pd.to_datetime(df['collection_time']).dt.tz_localize('UTC')
+        ## Fix CT because all the Wisconet Stations are in CT
+        df['collection_time_ct']=df['collection_time_utc'].dt.tz_convert('US/Central')
+        df['hour_ct'] = df['collection_time_ct'].dt.hour
 
-    # Return data as a dictionary with local times
-    return df.to_dict(orient="records")
+        print(df[cols])
+        # Return data as a dictionary with local times
+        return df[cols].to_dict(orient="records")
 
 
 #Check this one

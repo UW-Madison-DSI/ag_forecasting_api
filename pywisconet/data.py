@@ -2,6 +2,7 @@ from pathlib import Path
 import httpx
 from datetime import datetime
 from zoneinfo import ZoneInfo
+from pytz import timezone
 
 from pywisconet.schema import (
        BASE_URL, Station, Field, BulkMeasures, 
@@ -72,8 +73,24 @@ def bulk_measures(station_id: str, start_time: datetime, end_time: datetime, fie
     :param timeout: float, httpx timeout.
     :return: BulkMeasures object
     """
-    start_time_epoch = int(start_time.timestamp())
-    end_time_epoch = int(end_time.timestamp())
+    # Define Central Time timezone, the start_date and end_date are in CT, so then i need to transform it into CT and unix to build the query to Wisconet
+    central_tz = timezone('US/Central')
+    try:
+        #start_date.strip()
+        start_date_ct = central_tz.localize(datetime.strptime(start_time, "%Y-%m-%d"))
+        end_date_ct = central_tz.localize(datetime.strptime(end_time, "%Y-%m-%d"))
+    except ValueError as e:
+        return {"error": "Invalid date format. Please use YYYY-MM-DD.", "details": str(e)}
+
+    # Parse the date string and assume the time is midnight in CT
+    start_date_utc = start_date_ct.astimezone(timezone('UTC'))
+    end_date_utc = end_date_ct.astimezone(timezone('UTC'))
+    print("start time ", start_date_utc, " end time ", end_date_utc)
+
+    start_time_epoch = int(start_date_utc.timestamp())
+    end_time_epoch = int(end_date_utc.timestamp())
+    print("start time epoch ", start_time_epoch, " end time epoch ", end_time_epoch)
+
     route = f"/stations/{station_id}/measures"
     params = {
         "start_time": start_time_epoch,
