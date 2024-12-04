@@ -2,11 +2,13 @@ from fastapi import FastAPI, HTTPException, Query
 from typing import List, Optional
 from pywisconet.data import *
 from pywisconet.process import *
+from ibm_wrapper.process import *
 from starlette.middleware.wsgi import WSGIMiddleware
 from datetime import datetime
 from zoneinfo import ZoneInfo
 import pandas as pd
 from pytz import timezone
+from typing import Dict, Any  # Import Any here
 
 app = FastAPI()
 
@@ -196,6 +198,49 @@ def moving_averages_query(
     print(df[cols])
     # Return data as a dictionary with local times
     return df[cols].to_dict(orient="records")
+
+@app.get("/ibm_wrapper/{forecasting_date}")
+def all_data_from_ibm_query(
+    forecasting_date: str,  # Passed as part of the URL path
+    latitude: float = Query(..., description="Latitude of the location"),
+    longitude: float = Query(..., description="Longitude of the location"),
+):
+    """
+    Query weather data using the IBM Weather API.
+
+    Args:
+        forecasting_date (str): Start date for the forecast (YYYY-MM-DD).
+        latitude (float): Latitude of the location.
+        longitude (float): Longitude of the location.
+
+    Returns:
+        dict: Weather data including hourly and daily summaries.
+    """
+    try:
+        # Fetch weather data
+        weather_data = get_weather(latitude, longitude, forecasting_date)
+        df=weather_data['daily']
+        print('--------------',type(weather_data['daily']))
+        print("---+++++++")
+        print(weather_data['daily'].columns)
+
+        return df[['date','temperature_min', 'temperature_mean', 'temperature_max',
+           'temperatureDewPoint_min', 'temperatureDewPoint_mean',
+           'temperatureDewPoint_max', 'relativeHumidity_min',
+           'relativeHumidity_mean', 'relativeHumidity_max',
+                   'hours_rh90_night', 'hours_rh80_allday', 'temperature_max_30ma',
+                   'temperature_mean_30ma', 'temperatureDewPoint_min_30ma',
+                   'relativeHumidity_max_30ma', 'windSpeed_max_30ma',
+                   'hours_rh90_night_14ma', 'hours_rh80_allday_30ma',
+                   'temperature_min_21ma', 'forecasting_date', 'tarspot_risk',
+                   'tarspot_risk_class',
+            #'gls_risk', 'gls_risk_class','fe_risk','fe_risk_class'
+                   ]].to_dict(orient="records")
+
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid input: {e}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
 
 #Check this one
 #@app.get("/all_data_for_station/{station_id}")
