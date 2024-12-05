@@ -10,7 +10,6 @@ from ibm_wrapper.forecasting_models import *
 
 API_KEY = os.getenv("API_KEY")
 
-
 def ibm_chunks(start_date, end_date):
     chunks = []
     start = datetime.fromisoformat(start_date)
@@ -125,8 +124,6 @@ def get_weather(lat, lng, end_date):
     daily = build_daily(hourly)
     daily_data = add_moving_averages(daily)
     daily_data['forecasting_date'] = daily_data['date'].apply(lambda x: x + timedelta(days=1))
-    # Apply risk functions
-    # daily_data = daily_with_ma.copy()
 
     daily_data = daily_data.join(
         daily_data.apply(lambda row: calculate_tarspot_risk_function(

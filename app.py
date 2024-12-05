@@ -220,22 +220,11 @@ def all_data_from_ibm_query(
         # Fetch weather data
         weather_data = get_weather(latitude, longitude, forecasting_date)
         df=weather_data['daily']
-        print('--------------',type(weather_data['daily']))
-        print("---+++++++")
-        print(weather_data['daily'].columns)
+        df_cleaned = df.replace([np.inf, -np.inf, np.nan], None).where(pd.notnull(df), None)
 
-        return df[['date','temperature_min', 'temperature_mean', 'temperature_max',
-           'temperatureDewPoint_min', 'temperatureDewPoint_mean',
-           'temperatureDewPoint_max', 'relativeHumidity_min',
-           'relativeHumidity_mean', 'relativeHumidity_max',
-                   'hours_rh90_night', 'hours_rh80_allday', 'temperature_max_30ma',
-                   'temperature_mean_30ma', 'temperatureDewPoint_min_30ma',
-                   'relativeHumidity_max_30ma', 'windSpeed_max_30ma',
-                   'hours_rh90_night_14ma', 'hours_rh80_allday_30ma',
-                   'temperature_min_21ma', 'forecasting_date', 'tarspot_risk',
-                   'tarspot_risk_class',
-            #'gls_risk', 'gls_risk_class','fe_risk','fe_risk_class'
-                   ]].to_dict(orient="records")
+        df_dict = df_cleaned.to_dict(orient="records")
+
+        return df_dict
 
     except ValueError as e:
         raise HTTPException(status_code=400, detail=f"Invalid input: {e}")
