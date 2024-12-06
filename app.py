@@ -8,7 +8,8 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 import pandas as pd
 from pytz import timezone
-from typing import Dict, Any  # Import Any here
+from typing import List, Dict, Any
+from pydantic import BaseModel
 
 app = FastAPI()
 
@@ -199,11 +200,13 @@ def moving_averages_query(
     # Return data as a dictionary with local times
     return df[cols].to_dict(orient="records")
 
+# Endpoint
 @app.get("/ibm_wrapper/{forecasting_date}")
 def all_data_from_ibm_query(
     forecasting_date: str,  # Passed as part of the URL path
     latitude: float = Query(..., description="Latitude of the location"),
     longitude: float = Query(..., description="Longitude of the location"),
+    token: str= Query(..., description="token")
 ):
     """
     Query weather data using the IBM Weather API.
@@ -214,22 +217,51 @@ def all_data_from_ibm_query(
         longitude (float): Longitude of the location.
 
     Returns:
-        dict: Weather data including hourly and daily summaries.
+        dict: Cleaned daily weather data as JSON serializable records.
     """
     try:
-        # Fetch weather data
-        weather_data = get_weather(latitude, longitude, forecasting_date)
-        df=weather_data['daily']
-        df_cleaned = df.replace([np.inf, -np.inf, np.nan], None).where(pd.notnull(df), None)
+        if token==API_KEY:
+            weather_data = get_weather(latitude, longitude, forecasting_date)
 
-        df_dict = df_cleaned.to_dict(orient="records")
+            # Access the daily DataFrame
+            df = weather_data['daily']
 
-        return df_dict
+            # Clean NaN, inf, and -inf for JSON serialization
+            df_cleaned = df.replace([np.inf, -np.inf, np.nan], None).where(pd.notnull(df), None)
 
+            return df_cleaned.to_dict(orient="records")
+        else:
+            return {"Invalid token": 400}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=f"Invalid input: {e}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
+
+########################################################################
+#WISCONSIN_BBOX = (42.4919, -92.8881, 47.0808, -86.8050)
+
+#@app.get("/ibm_wrapper_grid/")
+#def all_data_from_ibm_query(
+#    resolution: float = Query(0.1, ge=0.01, le=1.0),
+#    end_date: str = Query(..., description="End date in format YYYY-MM-DD (e.g., 2024-07-02) assumed CT")
+#):
+#    try:
+#        print("Here in wrapper ----", end_date)
+
+        # Generate grid for Wisconsin
+#        grid = generate_grid(WISCONSIN_BBOX, resolution)
+#        print("Grid was generated ok!")
+        # Fetch weather data
+#        weather_data = fetch_weather_for_grid(grid, end_date)
+
+        # Return the data as JSON
+#        return weather_data
+
+#    except Exception as e:
+#        return {"error": f"An error occurred: {e}"}
+
+#if __name__ == '__main__':
+#    app.run(debug=True)
 
 #Check this one
 #@app.get("/all_data_for_station/{station_id}")
