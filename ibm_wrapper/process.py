@@ -104,40 +104,110 @@ def add_moving_averages(data):
 
 
 def get_weather(lat, lng, end_date):
-    tz = 'US/Central'
-    print(f"Fetching weather for point {lat}, {lng} ({tz})")
-    # Convert the string to a datetime object
-    date_obj = datetime.strptime(end_date, "%Y-%m-%d")
+    '''
 
-    # Subtract 31 days
-    date_31_days_before = date_obj - timedelta(days=36)
+    Args:
+        lat:
+        lng:
+        end_date:
 
-    # Convert back to string if needed
-    start_date = date_31_days_before.strftime("%Y-%m-%d")
+    Returns:
 
-    hourly_data = get_ibm_weather(lat, lng, start_date, end_date)
-    if hourly_data.empty:
-        print("No data returned from API.")
-        return None
+    '''
+    try:
+        tz = 'US/Central'
+        print(f"Fetching weather for point {lat}, {lng} ({tz})")
+        # Convert the string to a datetime object
+        date_obj = datetime.strptime(end_date, "%Y-%m-%d")
 
-    hourly = build_hourly(hourly_data, "US/Central")
-    daily = build_daily(hourly)
-    daily_data = add_moving_averages(daily)
-    daily_data['forecasting_date'] = daily_data['date'].apply(lambda x: x + timedelta(days=1))
+        # Subtract 31 days
+        date_31_days_before = date_obj - timedelta(days=36)
 
-    daily_data = daily_data.join(
-        daily_data.apply(lambda row: calculate_tarspot_risk_function(
-            row['temperature_mean_30ma'], row['relativeHumidity_max_30ma'], row['hours_rh90_night_14ma']), axis=1)
-    )
+        # Convert back to string if needed
+        start_date = date_31_days_before.strftime("%Y-%m-%d")
+        print("End date ", end_date, " start date ", start_date)
+        hourly_data = get_ibm_weather(lat, lng, str(start_date), str(date_obj))
+        if hourly_data.empty:
+            print("No data returned from API.")
+            return None
 
-    daily_data = daily_data.join(
-        daily_data.apply(lambda row: calculate_gray_leaf_spot_risk_function(
-            row['temperature_min_21ma'], row['temperatureDewPoint_min_30ma']), axis=1)
-    )
+        hourly = build_hourly(hourly_data, "US/Central")
+        daily = build_daily(hourly)
+        daily_data = add_moving_averages(daily)
+        daily_data['forecasting_date'] = daily_data['date'].apply(lambda x: x + timedelta(days=1))
 
-    daily_data = daily_data.join(
-        daily_data.apply(lambda row: calculate_frogeye_leaf_spot_function(
-            row['temperature_max_30ma'], row['hours_rh80_allday_30ma']), axis=1)
-    )
+        daily_data = daily_data.join(
+            daily_data.apply(lambda row: calculate_tarspot_risk_function(
+                row['temperature_mean_30ma'], row['relativeHumidity_max_30ma'], row['hours_rh90_night_14ma']), axis=1)
+        )
 
-    return {"hourly": hourly, "daily": daily_data}
+        daily_data = daily_data.join(
+            daily_data.apply(lambda row: calculate_gray_leaf_spot_risk_function(
+                row['temperature_min_21ma'], row['temperatureDewPoint_min_30ma']), axis=1)
+        )
+
+        daily_data = daily_data.join(
+            daily_data.apply(lambda row: calculate_frogeye_leaf_spot_function(
+                row['temperature_max_30ma'], row['hours_rh80_allday_30ma']), axis=1)
+        )
+
+        return {"hourly": hourly, "daily": daily_data}
+    except Exception as e:
+        print("Error --------", e)
+        print("The input was ", lat, lng, end_date)
+        return {"hourly": None, "daily": None}
+
+#######################################################
+from shapely.geometry import Polygon
+
+def generate_grid(bbox, resolution):
+    """
+    Generate a grid of points within the AOI.
+
+    Parameters:
+    - bbox: Tuple (min_lat, min_lng, max_lat, max_lng) defining AOI boundaries.
+    - resolution: Distance between points in degrees.
+
+    Returns:
+    - List of tuples (lat, lng) for grid points.
+    """
+    min_lat, min_lng, max_lat, max_lng = bbox
+    lat_points = np.arange(min_lat, max_lat + resolution, resolution)
+    lng_points = np.arange(min_lng, max_lng + resolution, resolution)
+
+    grid = [(lat, lng) for lat in lat_points for lng in lng_points]
+    return grid
+
+
+def fetch_weather_for_grid(grid, end_date):
+    """
+    Fetch weather data and risks for all points in the grid.
+
+    Parameters:
+    - grid: List of tuples (lat, lng).
+    - end_date: End date in "YYYY-MM-DD".
+
+    Returns:
+    - Dictionary with weather data and risks for each grid point.
+    """
+    weather_data = {}
+    for lat, lng in grid:
+        print(f"Fetching weather and risks for point: {lat}, {lng}, End date: {end_date}")
+        try:
+            data = get_weather(lat, lng, end_date)
+            print(len(data), "-- ok")
+            if data and 'daily' in data:
+                df = data['daily']
+
+                # Include all disease risks in the response
+                risks = df[['forecasting_date', 'tarspot_risk', 'gray_leaf_spot_risk', 'frogeye_leaf_spot_risk']]
+
+                # Convert to JSON-serializable format
+                weather_data[(lat, lng)] = risks.to_dict(orient="records")
+            else:
+                print(f"No data available for point {lat}, {lng}")
+        except Exception as e:
+            print(f"Error fetching data for point {lat}, {lng}: {e}")
+            continue
+
+    return weather_data
