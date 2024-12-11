@@ -48,7 +48,7 @@ def calculate_non_irrigated_risk(maxAT30MA, maxWS30MA):
     logit_nirr = (-0.47 * maxAT30MA) - (1.01 * maxWS30MA) + 16.65
     ensemble_prob = logistic_f(logit_nirr)
 
-    return pd.Series({"sporec_nirr_risk": ensemble_prob, "sporec_nirr_risk_class": "NoClass"})
+    return pd.Series({"whitemold_nirr_risk": ensemble_prob, "whitemold_nirr_risk_class": "NoClass"})
 
 
 def calculate_irrigated_risk(maxAT30MA, maxRH30MA):
@@ -59,8 +59,8 @@ def calculate_irrigated_risk(maxAT30MA, maxRH30MA):
     prob_logit_irr_15 = logistic_f(logit_irr_15)
 
     return pd.Series({
-        "sporec_irr_30in_risk": prob_logit_irr_30,
-        "sporec_irr_15in_risk": prob_logit_irr_15
+        "whitemold_irr_30in_risk": prob_logit_irr_30,
+        "whitemold_irr_15in_risk": prob_logit_irr_15
     })
 
 
