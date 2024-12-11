@@ -151,6 +151,16 @@ def get_weather(lat, lng, end_date):
                 row['temperature_max_30ma'], row['hours_rh80_allday_30ma']), axis=1)
         )
 
+        daily_data = daily_data.join(
+            daily_data.apply(lambda row: calculate_irrigated_risk(
+                row['temperature_max_30ma'], row['relativeHumidity_max_30ma']), axis=1)
+        )
+
+        daily_data = daily_data.join(
+            daily_data.apply(lambda row: calculate_non_irrigated_risk(
+                row['temperature_max_30ma'], row['windSpeed_max_30ma']), axis=1)
+        )
+
         return {"hourly": hourly, "daily": daily_data}
     except Exception as e:
         print("Error --------", e)
