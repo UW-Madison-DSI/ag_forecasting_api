@@ -10,6 +10,7 @@ from ag_models_wrappers.forecasting_models import *
 # Define your URL base and any other constants
 base_url = "https://wisconet.wisc.edu/api/v1"
 
+stations_exclude = ['MITEST1','WNTEST1']
 
 def api_call_wisconet_data_daily(station_id, input_date):
     '''
@@ -204,7 +205,8 @@ def retrieve_tarspot_all_stations(input_date, input_station_id):
 
     if response.status_code == 200:
         allstations = pd.DataFrame(response.json())
-        allstations = allstations[~allstations['station_id'].isin(['MITEST1','WNTEST1'])]
+        allstations = allstations[~allstations['station_id'].isin(stations_exclude)]
+
         # Filter stations if input_station_id is provided
         if input_station_id:
             stations = allstations[allstations['station_id'] == input_station_id]
@@ -262,7 +264,7 @@ def retrieve_tarspot_all_stations(input_date, input_station_id):
                             'tarspot_risk_class', 'gls_risk',
                             'gls_risk_class', 'fe_risk', 'fe_risk_class',
                             'whitemold_irr_30in_risk', 'whitemold_irr_15in_risk',
-                           'whitemold_nirr_risk']]
+                            'whitemold_nirr_risk']]
     else:
         print(f"Error fetching station data, status code {response.status_code}")
         return None
