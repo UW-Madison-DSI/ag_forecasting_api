@@ -10,8 +10,17 @@ from ag_models_wrappers.forecasting_models import *
 # Define your URL base and any other constants
 base_url = "https://wisconet.wisc.edu/api/v1"
 
-# API call to fetch daily data
+
 def api_call_wisconet_data_daily(station_id, input_date):
+    '''
+
+    Args:
+        station_id:
+        input_date:
+
+    Returns:
+
+    '''
     # Define start and end date
     end_date = datetime.strptime(input_date, "%Y-%m-%d")
     start_date = end_date - timedelta(days=35)
@@ -35,7 +44,7 @@ def api_call_wisconet_data_daily(station_id, input_date):
 
         # Prepare the result DataFrame
         result_df = pd.DataFrame({
-            'o_collection_time': pd.to_datetime(df['collection_time'], unit='s'),
+            'o_collection_time': pd.to_datetime(df['collection_time'], unit='s'),# o_ because original measurement
             'collection_time': pd.to_datetime(df['collection_time'], unit='s').dt.tz_localize('UTC').dt.tz_convert('US/Central'),
             'air_temp_max_f': np.nan,
             'air_temp_min_f': np.nan,
@@ -86,6 +95,15 @@ def api_call_wisconet_data_daily(station_id, input_date):
 
 
 def api_call_wisconet_data_rh(station_id, end_time):
+    '''
+
+    Args:
+        station_id:
+        end_time:
+
+    Returns:
+
+    '''
     try:
         # Set base URL and endpoint
         endpoint = f'/stations/{station_id}/measures'
@@ -113,18 +131,17 @@ def api_call_wisconet_data_rh(station_id, end_time):
         if scode == 200:
             data = response.json().get("data", [])
             df = pd.DataFrame(data)
-            print("df 60min_relative_humidity_pct_avg >>> ", df)
             # Create the result DataFrame
             result_df = pd.DataFrame({
                 'o_collection_time': pd.to_datetime(df['collection_time'], unit='s'),
                 'collection_time': pd.to_datetime(df['collection_time'], unit='s').dt.tz_localize('UTC').dt.tz_convert('US/Central'),
-                'rh_avg': np.nan,  # Placeholder for relative humidity values
+                'rh_avg': np.nan,
             })
             # Extract RH values
             for i, item in df.iterrows():
                 measures = item.get('measures', [])
                 for measure in measures:
-                    if measure[0] == 19:  # Looking for 60min_relative_humidity_pct_avg
+                    if measure[0] == 19:
                         result_df.at[i, 'rh_avg'] = measure[1]
 
             # Add new columns for processing the night RH >= 90 counts
@@ -151,19 +168,16 @@ def api_call_wisconet_data_rh(station_id, end_time):
             # Group by adjusted date and sum RH above 90 counts for each day
             daily_rh_above_90 = result_df.groupby('adjusted_date').agg(
                 nhours_rh_above_90=('rh_night_above_90', 'sum'),
-                hours_rh_above_80_day=('rh_day_above_80', 'sum')  # New column for RH >= 80 during the day
+                hours_rh_above_80_day=('rh_day_above_80', 'sum')
             ).reset_index()
 
-            # Calculate 14-day rolling mean for RH >= 90 hours and RH >= 80 during the day
             daily_rh_above_90['rh_above_90_night_14d_ma'] = daily_rh_above_90['nhours_rh_above_90'].rolling(window=14,
                                                                                                            min_periods=1).mean()
             daily_rh_above_90['rh_above_80_day_30d_ma'] = daily_rh_above_90['hours_rh_above_80_day'].rolling(window=30,
                                                                                                              min_periods=1).mean()
 
-            # Get the most recent data (latest date)
             daily_rh_above_90 = daily_rh_above_90.sort_values('adjusted_date', ascending=False).head(1)
             daily_rh_above_90['station_id'] = station_id
-            # Return the result with the adjusted date and 14-day moving averages
 
             return daily_rh_above_90[['adjusted_date','station_id', 'rh_above_90_night_14d_ma', 'rh_above_80_day_30d_ma']]
         else:
@@ -176,7 +190,15 @@ def api_call_wisconet_data_rh(station_id, end_time):
 
 # Main function to retrieve and process data for all stations
 def retrieve_tarspot_all_stations(input_date, input_station_id):
-    # Example base URL for fetching all stations
+    '''
+
+    Args:
+        input_date:
+        input_station_id:
+
+    Returns:
+
+    '''
     allstations_url = f"https://connect.doit.wisc.edu/pywisconet_wrapper/all_stations/31?start_date={input_date}"
     response = requests.get(allstations_url)
 
@@ -186,8 +208,6 @@ def retrieve_tarspot_all_stations(input_date, input_station_id):
         # Filter stations if input_station_id is provided
         if input_station_id:
             stations = allstations[allstations['station_id'] == input_station_id]
-            print("ALL STATIONS -----")
-            print(stations)
             daily_data = api_call_wisconet_data_daily(stations['station_id'].iloc[0], input_date)
             rh=api_call_wisconet_data_rh(stations['station_id'].iloc[0], input_date)
             result = pd.merge(stations, daily_data, on='station_id', how='left')
@@ -198,7 +218,6 @@ def retrieve_tarspot_all_stations(input_date, input_station_id):
             st_res_list = []
             st_rh_list = []
             for st in list(stations['station_id'].values):
-                print("------------------->> ", st)
                 st_res = api_call_wisconet_data_daily(st, input_date)
                 rh = api_call_wisconet_data_rh(st, input_date)
                 #if st_res is not None:
