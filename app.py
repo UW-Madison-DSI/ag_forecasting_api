@@ -231,10 +231,11 @@ def all_data_from_ibm_query(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
 
-# Endpoint for querying data from Wisconet
+# Endpoint for querying data from Wisconet. The retrieved information corresponds with daily aggregations.
 @app.get("/ag_models_wrappers/wisconet")
 def all_data_from_wisconet_query(
     forecasting_date: str,
+    risk_days: int = 1,
     station_id: str = None
 ):
     """
@@ -248,7 +249,7 @@ def all_data_from_wisconet_query(
         dict: Cleaned weather data as JSON serializable records.
     """
     try:
-        df = retrieve_tarspot_all_stations(input_date=forecasting_date, input_station_id=station_id)
+        df = retrieve_tarspot_all_stations(input_date=forecasting_date, input_station_id=station_id, days=risk_days)
         df_cleaned = df.replace([np.inf, -np.inf, np.nan], None).where(pd.notnull(df), None)
         return df_cleaned.to_dict(orient="records")
     except ValueError as e:
