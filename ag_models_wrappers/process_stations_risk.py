@@ -208,8 +208,6 @@ def one_day_measurements(station_id, end_time, days):
         # Sort by collection_time and get the most recent `days` rows
         daily_rh_above_90 = daily_rh_above_90.sort_values('date', ascending=False).head(days)
         # Process the RH data: Convert collection_time to datetime and extract date
-        print("RH --------------")
-        print(daily_rh_above_90)
 
         # Fetch the daily temperature data
         result_df = api_call_wisconet_data_daily(station_id, end_time)
@@ -218,10 +216,6 @@ def one_day_measurements(station_id, end_time, days):
             raise ValueError(f"No daily data found for station {station_id}.")
 
         # Process the daily data: Convert collection_time to datetime and extract date
-
-        print("AT --------------")
-        print(result_df)
-        # Merge the two DataFrames on 'date'
         combined_df = pd.merge(
             daily_rh_above_90[['date', 'rh_above_90_night_14d_ma', 'rh_above_80_day_30d_ma']],
             result_df[['date', 'air_temp_max_c_30d_ma', 'air_temp_min_c_21d_ma',
