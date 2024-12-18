@@ -17,17 +17,18 @@ from ag_models_wrappers.process_ibm_risk import *
 
 app = FastAPI()
 
-# Testing station_fields
+# Endpoint for querying station fields by station_id
 @app.get("/station_fields/{station_id}")
 def station_fields_query(station_id: str):
-    '''
+    """
+    Retrieve the fields for a given station based on its station_id.
 
     Args:
-        station_id:
+        station_id (str): The ID of the station to retrieve fields for.
 
     Returns:
-
-    '''
+        dict: The fields associated with the specified station.
+    """
     try:
         result = station_fields(station_id)
         if result is None:
@@ -36,64 +37,63 @@ def station_fields_query(station_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# Endpoint for querying all stations based on minimum active days and start date
 @app.get("/all_stations/{min_days_active}")
 def stations_query(
         min_days_active: int,
         start_date: str = Query(..., description="Start date in format YYYY-MM-DD (e.g., 2024-07-01)")
 ):
-    '''
+    """
+    Retrieve all stations based on the minimum number of active days from the start date.
 
     Args:
-        min_days_active:
-        start_date:
+        min_days_active (int): The minimum number of days a station should have been active.
+        start_date (str): The start date for filtering stations.
 
     Returns:
-
-    '''
+        dict: A list of stations matching the provided criteria.
+    """
     try:
         start_date = datetime.strptime(start_date.strip(), "%Y-%m-%d").replace(tzinfo=ZoneInfo("UTC"))
         result = all_stations(min_days_active, start_date)
         if result is None:
-            raise HTTPException(status_code=404, detail=f"Stations not found")
+            raise HTTPException(status_code=404, detail="Stations not found")
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
+# Endpoint for querying bulk measures for a given station and date range
 @app.get('/bulk_measures/{station_id}')
 def bulk_measures_query(
     station_id: str,
     start_date: str = Query(..., description="Start date in format YYYY-MM-DD (e.g., 2024-07-01) assumed CT"),
     end_date: str = Query(..., description="End date in format YYYY-MM-DD (e.g., 2024-07-02) assumed CT"),
     measurements: str = Query(..., description="Measurements (e.g., AIRTEMP, DEW_POINT, WIND_SPEED, RELATIVE_HUMIDITY, ALL the units are F, M/S and % respectively, all means the last 4)"),
-    #measurements_list = None, #str = Query(..., description="List of measurements eg '60min_air_temp_f_avg', '60min_dew_point_f_avg', '60min_relative_humidity_pct_avg', '60min_wind_speed_mph_max', '60min_wind_speed_mph_avg', '60min_wind_speed_max_time'"),
-    #units: str = Query(..., description="Units for measurements (e.g., FAHRENHEIT, PCT, METERSPERSECOND, MPH)"),
     frequency: str = Query(..., description="Frequency of measurements (e.g., MIN60, MIN5, DAILY)")
 ):
-    '''
+    """
+    Query bulk measurements for a given station, date range, and measurement type.
 
     Args:
-        station_id:
-        start_date:
-        end_date:
-        measurements:
-        frequency:
+        station_id (str): The ID of the station to query data for.
+        start_date (str): The start date for querying data.
+        end_date (str): The end date for querying data.
+        measurements (str): The type of measurements to query.
+        frequency (str): The frequency of measurements.
 
     Returns:
-
-    '''
+        dict: The bulk measurement data for the specified parameters.
+    """
     cols = ['collection_time', 'collection_time_ct', 'hour_ct',
             'value', 'id', 'collection_frequency',
             'final_units', 'measure_type','qualifier', #'source_field',
             'standard_name', 'units_abbrev']
 
-    print("Dates:", start_date, end_date)
     if measurements is not None:
         # Retrieve fields for the station
         this_station_fields = station_fields(station_id)
-        #print("This station fields, ", this_station_fields)
 
-        if measurements=='ALL':
+        if measurements == 'ALL':
             filtered_field_standard_names = filter_fields(
                 this_station_fields,
                 criteria=[
@@ -104,45 +104,28 @@ def bulk_measures_query(
                     CollectionFrequency[frequency]
                 ]
             )
-        if measurements =='RELATIVE_HUMIDITY':
+        # Filter the fields based on the specific measurement type
+        elif measurements == 'RELATIVE_HUMIDITY':
             filtered_field_standard_names = filter_fields(
                 this_station_fields,
-                criteria=[
-                    MeasureType.RELATIVE_HUMIDITY,
-                    CollectionFrequency[frequency],
-                    Units.PCT
-                ]
+                criteria=[MeasureType.RELATIVE_HUMIDITY, CollectionFrequency[frequency], Units.PCT]
             )
-        elif measurements =='AIRTEMP':
-            print('this_station_fields ', this_station_fields)
+        elif measurements == 'AIRTEMP':
             filtered_field_standard_names = filter_fields(
                 this_station_fields,
-                criteria=[
-                    MeasureType.AIRTEMP,
-                    CollectionFrequency[frequency],
-                    Units.FAHRENHEIT
-                ]
+                criteria=[MeasureType.AIRTEMP, CollectionFrequency[frequency], Units.FAHRENHEIT]
             )
         elif measurements == 'DEW_POINT':
             filtered_field_standard_names = filter_fields(
                 this_station_fields,
-                criteria=[
-                    MeasureType.DEW_POINT,
-                    CollectionFrequency[frequency],
-                    Units.FAHRENHEIT
-                ]
+                criteria=[MeasureType.DEW_POINT, CollectionFrequency[frequency], Units.FAHRENHEIT]
             )
-        elif measurements== 'WIND_SPEED':
+        elif measurements == 'WIND_SPEED':
             filtered_field_standard_names = filter_fields(
                 this_station_fields,
-                criteria=[
-                    MeasureType.WIND_SPEED,
-                    CollectionFrequency[frequency],
-                    Units.METERSPERSECOND
-                ]
+                criteria=[MeasureType.WIND_SPEED, CollectionFrequency[frequency], Units.METERSPERSECOND]
             )
 
-        print("filtered_field_standard_names >> ", filtered_field_standard_names)
         # Fetch data for the date range
         bulk_measure_response = bulk_measures(
             station_id,
@@ -153,27 +136,24 @@ def bulk_measures_query(
 
         df = bulk_measures_to_df(bulk_measure_response)
         df['collection_time_utc'] = pd.to_datetime(df['collection_time']).dt.tz_localize('UTC')
-        ## Fix CT because all the Wisconet Stations are in CT
-        df['collection_time_ct']=df['collection_time_utc'].dt.tz_convert('US/Central')
+        df['collection_time_ct'] = df['collection_time_utc'].dt.tz_convert('US/Central')
         df['hour_ct'] = df['collection_time_ct'].dt.hour
 
-        print(df[cols])
-        # Return data as a dictionary with local times
         return df[cols].to_dict(orient="records")
 
-# Endpoint
+# Endpoint for querying weather data using the IBM Weather API
 @app.get("/ibm_wrapper/{forecasting_date}")
 def all_data_from_ibm_query(
     forecasting_date: str,  # Passed as part of the URL path
     latitude: float = Query(..., description="Latitude of the location"),
     longitude: float = Query(..., description="Longitude of the location"),
-    token: str= Query(..., description="token")
+    token: str = Query(..., description="API token")
 ):
     """
     Query weather data using the IBM Weather API.
 
     Args:
-        forecasting_date (str): Start date for the forecast (YYYY-MM-DD).
+        forecasting_date (str): The date for the forecast (YYYY-MM-DD).
         latitude (float): Latitude of the location.
         longitude (float): Longitude of the location.
 
@@ -181,13 +161,9 @@ def all_data_from_ibm_query(
         dict: Cleaned daily weather data as JSON serializable records.
     """
     try:
-        if token==API_KEY:
+        if token == API_KEY:
             weather_data = get_weather(latitude, longitude, forecasting_date)
-
-            # Access the daily DataFrame
             df = weather_data['daily']
-
-            # Clean NaN, inf, and -inf for JSON serialization
             df_cleaned = df.replace([np.inf, -np.inf, np.nan], None).where(pd.notnull(df), None)
             return df_cleaned.to_dict(orient="records")
         else:
@@ -197,91 +173,90 @@ def all_data_from_ibm_query(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
 
-@app.get("/ag_models_wrappers/wisconet/{forecasting_date}")
-def all_data_from_wisconet_query(
-    forecasting_date: str,
-    station_id: str = None
+
+# Endpoint for querying data from IBM
+@app.get("/wisconet/active_stations/")
+def stations_query(
+        min_days_active: int,
+        start_date: str = Query(..., description="Start date in format YYYY-MM-DD (e.g., 2024-07-01)")
 ):
-    '''
+    """
+    Retrieve all stations based on the minimum number of active days and the start date.
 
     Args:
-        forecasting_date:
-        station_id:
+        min_days_active (int): The minimum number of days a station should have been active.
+        start_date (str): The start date for filtering stations.
 
     Returns:
-
-    '''
+        dict: A list of stations matching the provided criteria.
+    """
     try:
-        df = retrieve_tarspot_all_stations(input_date=forecasting_date,
-                                           input_station_id=station_id)
-        # Clean NaN, inf, and -inf for JSON serialization
-        df_cleaned = df.replace([np.inf, -np.inf, np.nan], None).where(pd.notnull(df), None)
+        start_date = datetime.strptime(start_date.strip(), "%Y-%m-%d").replace(tzinfo=ZoneInfo("UTC"))
+        result = all_stations(min_days_active, start_date)
+        if result is None:
+            raise HTTPException(status_code=404, detail="Stations not found")
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
-        return df_cleaned.to_dict(orient="records")
+# Endpoint for querying data from IBM
+@app.get("/ag_models_wrappers/ibm")
+def all_data_from_ibm_query(
+    forecasting_date: str,  # Passed as part of the URL path
+    latitude: float = Query(..., description="Latitude of the location"),
+    longitude: float = Query(..., description="Longitude of the location"),
+    token: str = Query(..., description="API token")
+):
+    """
+    Query weather data using the IBM Weather API.
 
+    Args:
+        forecasting_date (str): The date for the forecast (YYYY-MM-DD).
+        latitude (float): Latitude of the location.
+        longitude (float): Longitude of the location.
+
+    Returns:
+        dict: Cleaned daily weather data as JSON serializable records.
+    """
+    try:
+        if token == API_KEY:
+            weather_data = get_weather(latitude, longitude, forecasting_date)
+            df = weather_data['daily']
+            df_cleaned = df.replace([np.inf, -np.inf, np.nan], None).where(pd.notnull(df), None)
+            return df_cleaned.to_dict(orient="records")
+        else:
+            return {"Invalid token": 400}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=f"Invalid input: {e}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
 
-########################################################################
-#WISCONSIN_BBOX = (42.4919, -92.8881, 47.0808, -86.8050)
+# Endpoint for querying data from Wisconet
+@app.get("/ag_models_wrappers/wisconet")
+def all_data_from_wisconet_query(
+    forecasting_date: str,
+    station_id: str = None
+):
+    """
+    Query weather data for a given date and station from Wisconet.
 
-#@app.get("/ibm_wrapper_grid/")
-#def all_data_from_ibm_query(
-#    resolution: float = Query(0.1, ge=0.01, le=1.0),
-#    end_date: str = Query(..., description="End date in format YYYY-MM-DD (e.g., 2024-07-02) assumed CT")
-#):
-#    try:
-#        print("Here in wrapper ----", end_date)
+    Args:
+        forecasting_date (str): The date for which to retrieve weather data.
+        station_id (str, optional): The station ID to filter by.
 
-        # Generate grid for Wisconsin
-#        grid = generate_grid(WISCONSIN_BBOX, resolution)
-#        print("Grid was generated ok!")
-        # Fetch weather data
-#        weather_data = fetch_weather_for_grid(grid, end_date)
+    Returns:
+        dict: Cleaned weather data as JSON serializable records.
+    """
+    try:
+        df = retrieve_tarspot_all_stations(input_date=forecasting_date, input_station_id=station_id)
+        df_cleaned = df.replace([np.inf, -np.inf, np.nan], None).where(pd.notnull(df), None)
+        return df_cleaned.to_dict(orient="records")
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid input: {e}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
 
-        # Return the data as JSON
-#        return weather_data
-
-#    except Exception as e:
-#        return {"error": f"An error occurred: {e}"}
-
-#if __name__ == '__main__':
-#    app.run(debug=True)
-
-#Check this one
-#@app.get("/all_data_for_station/{station_id}")
-#def all_data_for_station_query(
-#    station_id: str
-#):
-#    try:
-#        stations = all_stations(n_days_active=1)
-#        this_station = [i for i in stations if i['station_id']==station_id][0]
-#        print("-----------------------------, This station ", this_station)
-#        this_station_fields = station_fields(station_id)
-#        filtered_field_standard_names = filter_fields(
-#            this_station_fields,
-#            criteria=[
-#                MeasureType.AIRTEMP,
-#                MeasureType.DEW_POINT,
-#                CollectionFrequency.MIN60,
-#                Units.FAHRENHEIT
-#            ]
-#        )
-        #print("filtered station fields ", filtered_field_standard_names)
-#        all_station_field_data_bms = all_data_for_station(this_station,
-#                                        filtered_field_standard_names)
-#        print("all_station_field_data_bms ",
-#              all_station_field_data_bms)
-#        all_station_field_data_df = bulk_measures_to_df(all_station_field_data_bms)
-
-#        if all_station_field_data_df is None:
-#            raise HTTPException(status_code=404, detail=f"Station {this_station.station_id} not found")
-#        return all_station_field_data_df
-#    except Exception as e:
-#        raise HTTPException(status_code=500, detail=str(e))
-
+# Root endpoint
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the Wisconsin Weather API"}
@@ -292,12 +267,13 @@ from starlette.routing import Mount
 from starlette.types import ASGIApp
 
 def create_wsgi_app():
+    """
+    Create a WSGI app to handle HTTP requests for the FastAPI application.
+    """
     async def app(scope, receive, send):
         if scope["type"] == "http":
-            # Delegate to FastAPI for HTTP requests
             await app(scope, receive, send)
         else:
-            # Handle other types of requests
             await send({
                 "type": "http.response.start",
                 "status": 404,

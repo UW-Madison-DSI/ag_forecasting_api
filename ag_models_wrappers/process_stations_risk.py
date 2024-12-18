@@ -12,16 +12,27 @@ base_url = "https://wisconet.wisc.edu/api/v1"
 
 stations_exclude = ['MITEST1','WNTEST1']
 
+# Map measures to corresponding columns using vectorized operations
+measure_map = {
+    4: 'air_temp_max_f',
+    6: 'air_temp_min_f',
+    20: 'rh_max',
+    12: 'min_dp',
+    56: 'max_ws'  # units in mph
+}
+
 def api_call_wisconet_data_daily(station_id, input_date):
-    '''
+    """
+    Fetches and processes daily weather data for a given station and date range.
 
     Args:
-        station_id:
-        input_date:
+        station_id (str): The unique ID of the station.
+        input_date (str): The end date for the query in "YYYY-MM-DD" format.
 
     Returns:
+        pd.DataFrame: A DataFrame with the latest weather data and 30-day moving averages.
+    """
 
-    '''
     # Define start and end date
     end_date = datetime.strptime(input_date, "%Y-%m-%d")
     start_date = end_date - timedelta(days=35)
@@ -38,15 +49,19 @@ def api_call_wisconet_data_daily(station_id, input_date):
         "fields": "daily_air_temp_f_avg,daily_air_temp_f_max,daily_air_temp_f_min,daily_dew_point_f_max,daily_dew_point_f_min,daily_relative_humidity_pct_max,daily_relative_humidity_pct_min,daily_wind_speed_mph_max,daily_dew_point_f_avg"
     }
 
+    # Send the API request
     response = requests.get(url, params=params)
+
+    # Check if the response is successful
     if response.status_code == 200:
         data = response.json().get("data", [])
         df = pd.DataFrame(data)
 
-        # Prepare the result DataFrame
+        # Prepare the result DataFrame with pre-allocated columns
         result_df = pd.DataFrame({
-            'o_collection_time': pd.to_datetime(df['collection_time'], unit='s'),# o_ because original measurement
-            'collection_time': pd.to_datetime(df['collection_time'], unit='s').dt.tz_localize('UTC').dt.tz_convert('US/Central'),
+            'o_collection_time': pd.to_datetime(df['collection_time'], unit='s'),
+            'collection_time': pd.to_datetime(df['collection_time'], unit='s').dt.tz_localize('UTC').dt.tz_convert(
+                'US/Central'),
             'air_temp_max_f': np.nan,
             'air_temp_min_f': np.nan,
             'rh_max': np.nan,
@@ -54,29 +69,22 @@ def api_call_wisconet_data_daily(station_id, input_date):
             'max_ws': np.nan
         })
 
-        # Populate measures
-        for i, row in df.iterrows():
-            for measure in row['measures']:
-                if measure[0] == 4:
-                    result_df.at[i, 'air_temp_max_f'] = measure[1]
-                elif measure[0] == 6:
-                    result_df.at[i, 'air_temp_min_f'] = measure[1]
-                elif measure[0] == 20:
-                    result_df.at[i, 'rh_max'] = measure[1]
-                elif measure[0] == 12:
-                    result_df.at[i, 'min_dp'] = measure[1]
-                elif measure[0] == 56:
-                    result_df.at[i, 'max_ws'] = measure[1] #units mph
+        # Vectorized population of measures
+        for measure_id, column_name in measure_map.items():
+            # Find the rows where the measure_id matches and assign the value
+            result_df[column_name] = df['measures'].apply(
+                lambda measures: next((m[1] for m in measures if m[0] == measure_id), np.nan))
 
         # Convert Fahrenheit to Celsius
         result_df['min_dp_c'] = fahrenheit_to_celsius(result_df['min_dp'])
         result_df['air_temp_max_c'] = fahrenheit_to_celsius(result_df['air_temp_max_f'])
         result_df['air_temp_min_c'] = fahrenheit_to_celsius(result_df['air_temp_min_f'])
-        result_df['air_temp_avg_c'] = fahrenheit_to_celsius(result_df[['air_temp_max_f', 'air_temp_min_f']].mean(axis=1))
+        result_df['air_temp_avg_c'] = fahrenheit_to_celsius(
+            result_df[['air_temp_max_f', 'air_temp_min_f']].mean(axis=1))
 
-        # Calculate 30-day moving averages
-        result_df['air_temp_max_c_30d_ma'] = result_df['air_temp_max_c'].rolling(window=30, min_periods=1).mean()
+        # Calculate 30-day moving averages using vectorized operations
         result_df['air_temp_min_c_21d_ma'] = result_df['air_temp_min_c'].rolling(window=21, min_periods=1).mean()
+        result_df['air_temp_max_c_30d_ma'] = result_df['air_temp_max_c'].rolling(window=30, min_periods=1).mean()
         result_df['air_temp_avg_c_30d_ma'] = result_df['air_temp_avg_c'].rolling(window=30, min_periods=1).mean()
         result_df['rh_max_30d_ma'] = result_df['rh_max'].rolling(window=30, min_periods=1).mean()
         result_df['max_ws_30d_ma'] = result_df['max_ws'].rolling(window=30, min_periods=1).mean()
@@ -200,7 +208,8 @@ def retrieve_tarspot_all_stations(input_date, input_station_id):
     Returns:
 
     '''
-    allstations_url = f"https://connect.doit.wisc.edu/pywisconet_wrapper/all_stations/31?start_date={input_date}"
+    min_days_active = 31
+    allstations_url = f"https://connect.doit.wisc.edu/pywisconet_wrapper/wisconet/active_stations/?min_days_active={min_days_active}&start_date={input_date}"
     response = requests.get(allstations_url)
 
     if response.status_code == 200:
