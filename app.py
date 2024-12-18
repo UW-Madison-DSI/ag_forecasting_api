@@ -1,8 +1,5 @@
 from fastapi import FastAPI, HTTPException, Query
 from typing import List, Optional
-from pywisconet.data import *
-from pywisconet.process import *
-from ibm_wrapper.process import *
 from starlette.middleware.wsgi import WSGIMiddleware
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -10,12 +7,27 @@ import pandas as pd
 from pytz import timezone
 from typing import List, Dict, Any
 from pydantic import BaseModel
+import numpy as np
+
+from pywisconet.data import *
+from pywisconet.process import *
+
+from ag_models_wrappers.process_stations_risk import *
+from ag_models_wrappers.process_ibm_risk import *
 
 app = FastAPI()
 
 # Testing station_fields
 @app.get("/station_fields/{station_id}")
 def station_fields_query(station_id: str):
+    '''
+
+    Args:
+        station_id:
+
+    Returns:
+
+    '''
     try:
         result = station_fields(station_id)
         if result is None:
@@ -29,6 +41,15 @@ def stations_query(
         min_days_active: int,
         start_date: str = Query(..., description="Start date in format YYYY-MM-DD (e.g., 2024-07-01)")
 ):
+    '''
+
+    Args:
+        min_days_active:
+        start_date:
+
+    Returns:
+
+    '''
     try:
         start_date = datetime.strptime(start_date.strip(), "%Y-%m-%d").replace(tzinfo=ZoneInfo("UTC"))
         result = all_stations(min_days_active, start_date)
@@ -49,7 +70,18 @@ def bulk_measures_query(
     #units: str = Query(..., description="Units for measurements (e.g., FAHRENHEIT, PCT, METERSPERSECOND, MPH)"),
     frequency: str = Query(..., description="Frequency of measurements (e.g., MIN60, MIN5, DAILY)")
 ):
+    '''
 
+    Args:
+        station_id:
+        start_date:
+        end_date:
+        measurements:
+        frequency:
+
+    Returns:
+
+    '''
     cols = ['collection_time', 'collection_time_ct', 'hour_ct',
             'value', 'id', 'collection_frequency',
             'final_units', 'measure_type','qualifier', #'source_field',
@@ -59,6 +91,8 @@ def bulk_measures_query(
     if measurements is not None:
         # Retrieve fields for the station
         this_station_fields = station_fields(station_id)
+        #print("This station fields, ", this_station_fields)
+
         if measurements=='ALL':
             filtered_field_standard_names = filter_fields(
                 this_station_fields,
@@ -108,6 +142,7 @@ def bulk_measures_query(
                 ]
             )
 
+        print("filtered_field_standard_names >> ", filtered_field_standard_names)
         # Fetch data for the date range
         bulk_measure_response = bulk_measures(
             station_id,
@@ -125,80 +160,6 @@ def bulk_measures_query(
         print(df[cols])
         # Return data as a dictionary with local times
         return df[cols].to_dict(orient="records")
-
-@app.get('/moving_averages/{station_id}')
-def moving_averages_query(
-    station_id: str,
-    end_date: str = Query(..., description="End date in format YYYY-MM-DD (e.g., 2024-07-02) assumed CT"),
-    disease_name: str = Query(..., description="Disease name (e.g., tarspot, gls, frogeye_ls, sporecaster")
-):
-    cols = ['collection_time', 'collection_time_ct', 'hour_ct',
-            'value', 'id', 'collection_frequency',
-            'final_units', 'measure_type','qualifier', #'source_field',
-            'standard_name', 'units_abbrev']
-    start_date = end_date - days(31)
-
-    print("Dates:", end_date, " start_date ", start_date)
-
-    this_station_fields = station_fields(station_id)
-
-    if disease_name =='tarspot':
-        # Retrieve fields for the station
-        filtered_field_standard_names = filter_fields(
-            this_station_fields,
-            criteria=[
-                MeasureType.RELATIVE_HUMIDITY,
-                MeasureType.AIRTEMP,
-                CollectionFrequency[frequency]
-                ]
-            )
-    elif disease_name == 'gls':
-        filtered_field_standard_names = filter_fields(
-            this_station_fields,
-            criteria=[
-                MeasureType.RELATIVE_HUMIDITY,
-                MeasureType.AIRTEMP,
-                CollectionFrequency[frequency]
-            ]
-        )
-
-    elif disease_name == 'frogeye_ls':
-        filtered_field_standard_names = filter_fields(
-            this_station_fields,
-            criteria=[
-                MeasureType.RELATIVE_HUMIDITY,
-                MeasureType.AIRTEMP,
-                CollectionFrequency[frequency]
-            ]
-        )
-
-    elif disease_name == 'sporecaster':
-        filtered_field_standard_names = filter_fields(
-            this_station_fields,
-            criteria=[
-                MeasureType.RELATIVE_HUMIDITY,
-                MeasureType.AIRTEMP,
-                CollectionFrequency[frequency]
-            ]
-        )
-
-    # Fetch data for the date range
-    bulk_measure_response = bulk_measures(
-            station_id,
-            start_date,
-            end_date,
-            filtered_field_standard_names
-        )
-
-    df = bulk_measures_to_df(bulk_measure_response)
-    df['collection_time_utc'] = pd.to_datetime(df['collection_time']).dt.tz_localize('UTC')
-    ## Fix CT because all the Wisconet Stations are in CT
-    df['collection_time_ct']=df['collection_time_utc'].dt.tz_convert('US/Central')
-    df['hour_ct'] = df['collection_time_ct'].dt.hour
-
-    print(df[cols])
-    # Return data as a dictionary with local times
-    return df[cols].to_dict(orient="records")
 
 # Endpoint
 @app.get("/ibm_wrapper/{forecasting_date}")
@@ -228,10 +189,36 @@ def all_data_from_ibm_query(
 
             # Clean NaN, inf, and -inf for JSON serialization
             df_cleaned = df.replace([np.inf, -np.inf, np.nan], None).where(pd.notnull(df), None)
-
             return df_cleaned.to_dict(orient="records")
         else:
             return {"Invalid token": 400}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid input: {e}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
+
+@app.get("/ag_models_wrappers/wisconet/{forecasting_date}")
+def all_data_from_wisconet_query(
+    forecasting_date: str,
+    station_id: str = None
+):
+    '''
+
+    Args:
+        forecasting_date:
+        station_id:
+
+    Returns:
+
+    '''
+    try:
+        df = retrieve_tarspot_all_stations(input_date=forecasting_date,
+                                           input_station_id=station_id)
+        # Clean NaN, inf, and -inf for JSON serialization
+        df_cleaned = df.replace([np.inf, -np.inf, np.nan], None).where(pd.notnull(df), None)
+
+        return df_cleaned.to_dict(orient="records")
+
     except ValueError as e:
         raise HTTPException(status_code=400, detail=f"Invalid input: {e}")
     except Exception as e:

@@ -6,11 +6,20 @@ from pytz import timezone
 
 # Set up your IBM API key
 import os
-from ibm_wrapper.forecasting_models import *
+from ag_models_wrappers.forecasting_models import *
 
 API_KEY = os.getenv("API_KEY")
 
 def ibm_chunks(start_date, end_date):
+    '''
+
+    Args:
+        start_date:
+        end_date:
+
+    Returns:
+
+    '''
     chunks = []
     start = datetime.fromisoformat(start_date)
     end = datetime.fromisoformat(end_date)
@@ -23,6 +32,17 @@ def ibm_chunks(start_date, end_date):
 
 
 def get_ibm_weather(lat, lng, start_date, end_date):
+    '''
+
+    Args:
+        lat:
+        lng:
+        start_date:
+        end_date:
+
+    Returns:
+
+    '''
     chunks = ibm_chunks(start_date, end_date)
     all_data = []
 
@@ -47,6 +67,15 @@ def get_ibm_weather(lat, lng, start_date, end_date):
 
 
 def build_hourly(data, tz='US/Central'):
+    '''
+
+    Args:
+        data:
+        tz:
+
+    Returns:
+
+    '''
     # Convert validTimeUtc to datetime with UTC timezone
     data['dttm_utc'] = pd.to_datetime(data['validTimeUtc'], utc=True)
 
@@ -65,6 +94,14 @@ def build_hourly(data, tz='US/Central'):
 
 
 def build_daily(hourly):
+    '''
+
+    Args:
+        hourly:
+
+    Returns:
+
+    '''
     daily = hourly.groupby('date').agg({
         'temperature': ['min', 'mean', 'max'],
         'temperatureDewPoint': ['min', 'mean', 'max'],
@@ -89,6 +126,14 @@ def build_daily(hourly):
 
 
 def add_moving_averages(data):
+    '''
+
+    Args:
+        data:
+
+    Returns:
+
+    '''
     for col in ['temperature_max', 'temperature_mean',
                 'temperatureDewPoint_min',
                 'relativeHumidity_max', 'windSpeed_max',
