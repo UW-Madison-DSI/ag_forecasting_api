@@ -8,6 +8,7 @@ from pytz import timezone
 import os
 from ag_models_wrappers.forecasting_models import *
 
+
 API_KEY = os.getenv("API_KEY")
 
 def ibm_chunks(start_date, end_date):
@@ -212,7 +213,7 @@ def get_weather(lat, lng, end_date):
         print("The input was ", lat, lng, end_date)
         return {"hourly": None, "daily": None}
 
-#######################################################
+##################################################################################################
 from shapely.geometry import Polygon
 
 def generate_grid(bbox, resolution):
