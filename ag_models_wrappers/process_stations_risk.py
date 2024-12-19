@@ -294,13 +294,19 @@ def retrieve_tarspot_all_stations(input_date, input_station_id, days):
         daily_data = daily_data.join(daily_data.apply(lambda row: calculate_non_irrigated_risk(
                 row['air_temp_max_c_30d_ma'], row['max_ws_30d_ma']), axis=1)
         )
-        return daily_data[['station_id','date', 'location',
+        daily_data['date'] = pd.to_datetime(daily_data['date'])
+
+        # Add one day to the 'date' column and store it in a new 'forecasting_date' column
+        daily_data['forecasting_date'] = (daily_data['date'] + timedelta(days=1)).dt.strftime('%Y-%m-%d')
+
+
+        return daily_data[['station_id','date','forecasting_date', 'location',
                             'station_name', 'city', 'county', 'earliest_api_date', 'latitude',
                             'longitude', 'region', 'state',
                             'station_timezone',
-                            'tarspot_risk',#'tarspot_risk_class',
-                            'gls_risk',#'gls_risk_class',
-                            'fe_risk',
+                            'tarspot_risk', 'tarspot_risk_class',
+                            'gls_risk', 'gls_risk_class',
+                            'fe_risk', 'fe_risk_class',
                             'whitemold_irr_30in_risk',
                             'whitemold_irr_15in_risk',
                             'whitemold_nirr_risk']]

@@ -37,30 +37,6 @@ def station_fields_query(station_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Endpoint for querying all stations based on minimum active days and start date
-@app.get("/all_stations/{min_days_active}")
-def stations_query(
-        min_days_active: int,
-        start_date: str = Query(..., description="Start date in format YYYY-MM-DD (e.g., 2024-07-01)")
-):
-    """
-    Retrieve all stations based on the minimum number of active days from the start date.
-
-    Args:
-        min_days_active (int): The minimum number of days a station should have been active.
-        start_date (str): The start date for filtering stations.
-
-    Returns:
-        dict: A list of stations matching the provided criteria.
-    """
-    try:
-        start_date = datetime.strptime(start_date.strip(), "%Y-%m-%d").replace(tzinfo=ZoneInfo("UTC"))
-        result = all_stations(min_days_active, start_date)
-        if result is None:
-            raise HTTPException(status_code=404, detail="Stations not found")
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 # Endpoint for querying bulk measures for a given station and date range
 @app.get('/bulk_measures/{station_id}')
@@ -141,38 +117,6 @@ def bulk_measures_query(
 
         return df[cols].to_dict(orient="records")
 
-# Endpoint for querying weather data using the IBM Weather API
-@app.get("/ibm_wrapper/{forecasting_date}")
-def all_data_from_ibm_query(
-    forecasting_date: str,  # Passed as part of the URL path
-    latitude: float = Query(..., description="Latitude of the location"),
-    longitude: float = Query(..., description="Longitude of the location"),
-    token: str = Query(..., description="API token")
-):
-    """
-    Query weather data using the IBM Weather API.
-
-    Args:
-        forecasting_date (str): The date for the forecast (YYYY-MM-DD).
-        latitude (float): Latitude of the location.
-        longitude (float): Longitude of the location.
-
-    Returns:
-        dict: Cleaned daily weather data as JSON serializable records.
-    """
-    try:
-        if token == API_KEY:
-            weather_data = get_weather(latitude, longitude, forecasting_date)
-            df = weather_data['daily']
-            df_cleaned = df.replace([np.inf, -np.inf, np.nan], None).where(pd.notnull(df), None)
-            return df_cleaned.to_dict(orient="records")
-        else:
-            return {"Invalid token": 400}
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=f"Invalid input: {e}")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
-
 
 # Endpoint for querying data from IBM
 @app.get("/wisconet/active_stations/")
@@ -198,6 +142,7 @@ def stations_query(
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 # Endpoint for querying data from IBM
 @app.get("/ag_models_wrappers/ibm")
@@ -230,6 +175,7 @@ def all_data_from_ibm_query(
         raise HTTPException(status_code=400, detail=f"Invalid input: {e}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
+
 
 # Endpoint for querying data from Wisconet. The retrieved information corresponds with daily aggregations.
 @app.get("/ag_models_wrappers/wisconet")
