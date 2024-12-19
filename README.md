@@ -1,4 +1,4 @@
-# Open Source Forecasting Tool
+# Open Source Agricultural Forecasting and Advisory System API
 This open-source forecasting tool provides plant disease predictions both as an API and through a customizable dashboard.
 
 ## Acknowledgements:
@@ -17,7 +17,7 @@ See below the documentation.
 ## pywisconet
 This API wrapper represents an interface for interacting with Wisconet v1 data. The intended objective is to provide a streamlined method for accessing weather and environmental data from Wisconet's network of stations, enabling users to integrate this data into their own applications and forecasting models for agricultural and environmental analysis.
 
-# Open Source Agricultural Forecasting and Advisory System API
+
 API Documentation: [API](https://connect.doit.wisc.edu/pywisconet_wrapper/docs)
 
 For more information on how to use our API, please visit the material section.
