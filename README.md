@@ -3,6 +3,7 @@ Python wrapper [API](https://connect.doit.wisc.edu/pywisconet_wrapper/docs)
 
 # pywisconet
 </details>
+<summary>Details</summary>
 
 for the [Wisconet](https://wisconet.wisc.edu/) [API v1](https://wisconet.wisc.edu/docs)
 
@@ -68,3 +69,4 @@ mpl_fig.savefig("specific_data_specific_time.png")
 ![Specific data over a specific time period](./notebooks/specific_data_specific_time.png)
 
 ### see more examples in the notebooks/examples.ipynb
+</details>
