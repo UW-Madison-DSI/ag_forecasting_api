@@ -4,13 +4,13 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 from pytz import timezone
+from concurrent.futures import ThreadPoolExecutor
 
 from ag_models_wrappers.forecasting_models import *
 
-# Define your URL base and any other constants
 base_url = "https://wisconet.wisc.edu/api/v1"
 
-stations_exclude = ['MITEST1','WNTEST1']
+stations_to_exclude = ['MITEST1','WNTEST1']
 min_days_active = 38
 
 # Map measures to corresponding columns using vectorized operations
@@ -256,23 +256,16 @@ def retrieve_tarspot_all_stations(input_date, input_station_id, days):
         # Filter stations if input_station_id is provided
         if input_station_id:
             stations = allstations[(allstations['station_id'] == input_station_id)
-                        & (~allstations['station_id'].isin(stations_exclude))]
+                        & (~allstations['station_id'].isin(stations_to_exclude))]
             all_results = one_day_measurements(input_station_id, input_date, days)
 
         else:
-            from concurrent.futures import ThreadPoolExecutor
-
-            # Assuming 'stations' is your filtered DataFrame
-            stations = allstations[~allstations['station_id'].isin(stations_exclude)]
-
-            # Define a function to get the daily data
+            stations = allstations[~allstations['station_id'].isin(stations_to_exclude)]
             def get_daily_data(station_id, input_date, days):
                 return one_day_measurements(station_id, input_date, days)
 
-            # Prepare a list of station IDs
             station_ids = stations['station_id'].values
 
-            # Use ThreadPoolExecutor for parallel execution
             with ThreadPoolExecutor() as executor:
                 # Map the get_daily_data function to each station_id
                 st_res_list = list(executor.map(lambda st: get_daily_data(st, input_date, days), station_ids))
@@ -280,12 +273,6 @@ def retrieve_tarspot_all_stations(input_date, input_station_id, days):
             # Combine the results
             all_results = pd.concat(st_res_list, ignore_index=True)
 
-            #st_res_list = []
-            #for st in list(stations['station_id'].values):
-            #    daily_data = one_day_measurements(st, input_date, days)
-            #    st_res_list.append(daily_data)
-
-            #all_results = pd.concat(st_res_list, ignore_index=True)
 
         daily_data = (stations
                   .merge(all_results, on='station_id', how='inner'))
@@ -315,7 +302,6 @@ def retrieve_tarspot_all_stations(input_date, input_station_id, days):
         )
         daily_data['date'] = pd.to_datetime(daily_data['date'])
 
-        # Add one day to the 'date' column and store it in a new 'forecasting_date' column
         daily_data['forecasting_date'] = (daily_data['date'] + timedelta(days=1)).dt.strftime('%Y-%m-%d')
 
 
