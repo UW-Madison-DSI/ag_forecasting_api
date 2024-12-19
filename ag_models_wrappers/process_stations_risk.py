@@ -260,13 +260,32 @@ def retrieve_tarspot_all_stations(input_date, input_station_id, days):
             all_results = one_day_measurements(input_station_id, input_date, days)
 
         else:
-            stations = allstations[~allstations['station_id'].isin(stations_exclude)]
-            st_res_list = []
-            for st in list(stations['station_id'].values):
-                daily_data = one_day_measurements(st, input_date, days)
-                st_res_list.append(daily_data)
+            from concurrent.futures import ThreadPoolExecutor
 
+            # Assuming 'stations' is your filtered DataFrame
+            stations = allstations[~allstations['station_id'].isin(stations_exclude)]
+
+            # Define a function to get the daily data
+            def get_daily_data(station_id, input_date, days):
+                return one_day_measurements(station_id, input_date, days)
+
+            # Prepare a list of station IDs
+            station_ids = stations['station_id'].values
+
+            # Use ThreadPoolExecutor for parallel execution
+            with ThreadPoolExecutor() as executor:
+                # Map the get_daily_data function to each station_id
+                st_res_list = list(executor.map(lambda st: get_daily_data(st, input_date, days), station_ids))
+
+            # Combine the results
             all_results = pd.concat(st_res_list, ignore_index=True)
+
+            #st_res_list = []
+            #for st in list(stations['station_id'].values):
+            #    daily_data = one_day_measurements(st, input_date, days)
+            #    st_res_list.append(daily_data)
+
+            #all_results = pd.concat(st_res_list, ignore_index=True)
 
         daily_data = (stations
                   .merge(all_results, on='station_id', how='inner'))
