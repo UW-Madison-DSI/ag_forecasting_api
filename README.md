@@ -1,19 +1,44 @@
+# Open Source Forecasting Tool
+This open-source forecasting tool provides plant disease predictions both as an API and through a customizable dashboard.
 
-Python wrapper [API](https://connect.doit.wisc.edu/pywisconet_wrapper/docs)
+## Acknowledgements:
+This is an initiative of the Open source Program Office at the University of Madison-Wisconsin.
+Visit our Dashboard:
+- GitHub Repo
+- Link
 
-# pywisconet
-</details>
-<summary>Details</summary>
+## ag_models_wrappers
+The ag_models_wrappers serve as the critical layer for providing crop model-based risk assessments tailored to weather data on specific locations eg Wisconet Stations or punctual locations in Wisconsin by IBM data. This component integrates various forecasting models to deliver localized risk predictions for plant diseases for a given forecasting date, enabling informed decision-making in agricultural management.
+- Wisconet API Wrapper: This REST API simplifies communication between the Wisconet API service and our dashboard. We developed an API that dynamically retrieves data from available weather stations, fetching daily and hourly variables necessary for the input of various disease models.
+- IBM API Wrapper: This REST API facilitates communication between the IBM paid service and our dashboard. Access to the IBM service is secured with an API key.
+Both APIs are open-source and can be integrated into other processes. Note that the IBM API requires an API key for access.
+See below the documentation.
 
-for the [Wisconet](https://wisconet.wisc.edu/) [API v1](https://wisconet.wisc.edu/docs)
+## pywisconet
+This API wrapper represents an interface for interacting with Wisconet v1 data. The intended objective is to provide a streamlined method for accessing weather and environmental data from Wisconet's network of stations, enabling users to integrate this data into their own applications and forecasting models for agricultural and environmental analysis.
 
+# Open Source Agricultural Forecasting and Advisory System API
+API Documentation: [API](https://connect.doit.wisc.edu/pywisconet_wrapper/docs)
 
-## install
+For more information on how to use our API, please visit the material section.
+
+## Installation and Setup
+To set up and run the API locally, follow these steps:
+
 ```
 git clone git@github.com:UW-Madison-DSI/pywisconet.git
 cd pywisconet
-poetry install
+python -m venv venv
+source venv/bin/activate  # On Windows use: venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn app:app --reload
 ```
+
+The models presented herein constitute the foundation of our Open Source Agricultural Forecasting and Advisory System, which underpins the [APP](https://github.com/UW-Madison-DSI/corn_disease_forecast_api.git) 
+
+
+# pywisconet
+
 
 ## usage
 ```python
@@ -69,4 +94,3 @@ mpl_fig.savefig("specific_data_specific_time.png")
 ![Specific data over a specific time period](./notebooks/specific_data_specific_time.png)
 
 ### see more examples in the notebooks/examples.ipynb
-</details>
