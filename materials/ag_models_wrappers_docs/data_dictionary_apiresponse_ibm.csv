@@ -1,0 +1,36 @@
+Field Name,Description,Data Type
+date,The date when the data was collected.,Date (YYYY-MM-DD)
+temperature_min,The minimum temperature recorded on the given date (°C).,Float
+temperature_mean,The average temperature for the day (°C).,Float
+temperature_max,The maximum temperature recorded on the given date (°C).,Float
+temperatureDewPoint_min,The minimum dew point temperature (°C).,Float
+temperatureDewPoint_mean,The average dew point temperature (°C).,Float
+temperatureDewPoint_max,The maximum dew point temperature (°C).,Float
+relativeHumidity_min,The minimum relative humidity recorded (percentage).,Float
+relativeHumidity_mean,The average relative humidity recorded (percentage).,Float
+relativeHumidity_max,The maximum relative humidity recorded (percentage).,Float
+precip1Hour_sum,Total precipitation measured over a 1-hour period (mm).,Float
+windSpeed_mean,The average wind speed recorded (m/s).,Float
+windSpeed_max,The maximum wind speed recorded (m/s).,Float
+date_since_night,The date since the last recorded night period.,Date (YYYY-MM-DD)
+hours_rh90_night,Number of hours during the night with relative humidity greater than or equal to 90%.,Float
+hours_rh80_allday,Number of hours during the day with relative humidity greater than or equal to 80%.,Float
+temperature_max_30ma,The maximum temperature over a 30-day moving average (°C).,Float
+temperature_mean_30ma,The average temperature over a 30-day moving average (°C).,Float
+temperatureDewPoint_min_30ma,The minimum dew point temperature over a 30-day moving average (°C).,Float
+relativeHumidity_max_30ma,The maximum relative humidity over a 30-day moving average (percentage).,Float
+windSpeed_max_30ma,The maximum wind speed over a 30-day moving average (m/s).,Float
+hours_rh90_night_14ma,"Number of hours during the night with relative humidity greater than or equal to 90%, over a 14-day moving average.",Float
+hours_rh80_allday_30ma,"Number of hours during the day with relative humidity greater than or equal to 80%, over a 30-day moving average.",Float
+temperature_min_21ma,The minimum temperature over a 21-day moving average (°C).,Float
+forecasting_date,"The date for the forecasted data, which may represent the next forecast period.",Date (YYYY-MM-DD)
+tarspot_risk,"The calculated risk of Tarspot disease (from 0 to 1, where 1 is high risk).",Float
+tarspot_risk_class,"The risk classification for Tarspot disease (e.g., High, Medium, Low).",String
+gls_risk,"The calculated risk of GLS disease (from 0 to 1, where 1 is high risk).",Float
+gls_risk_class,"The risk classification for GLS disease (e.g., High, Medium, Low).",String
+fe_risk,"The calculated risk of Fusarium Ear disease (from 0 to 1, where 1 is high risk).",Float
+fe_risk_class,"The risk classification for Fusarium Ear disease (e.g., High, Medium, Low).",String
+whitemold_irr_30in_risk,The calculated risk of White Mold disease from irrigated areas (30 inches) (from 0 to 1).,Float
+whitemold_irr_15in_risk,The calculated risk of White Mold disease from irrigated areas (15 inches) (from 0 to 1).,Float
+whitemold_nirr_risk,The calculated risk of White Mold disease from non-irrigated areas (from 0 to 1).,Float
+whitemold_nirr_risk_class,"The risk classification for White Mold disease from non-irrigated areas (e.g., NoClass, Low).",String

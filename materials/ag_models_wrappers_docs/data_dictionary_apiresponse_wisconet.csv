@@ -1,0 +1,23 @@
+Field Name,Description,Data Type
+station_id,Unique identifier for the weather station.,String
+date,The date when the data was collected (in ISO 8601 format).,Date (YYYY-MM-DD)
+forecasting_date,The date for the forecasted data (in ISO 8601 format).,Date (YYYY-MM-DD)
+location,Name of the location or airport where the station is situated.,String
+station_name,Name of the weather station.,String
+city,The city in which the station is located.,String
+county,The county in which the station is located.,String
+earliest_api_date,The earliest date from which data is available for the API (ISO 8601 format).,Date (YYYY-MM-DD)
+latitude,Latitude of the weather station.,Float
+longitude,Longitude of the weather station.,Float
+region,The geographic region where the station is located.,String
+state,The state where the station is located.,String
+station_timezone,The timezone of the weather station.,String
+tarspot_risk,"The calculated risk of Tarspot disease (from 0 to 1, where 1 is high risk).",Float
+tarspot_risk_class,"The risk classification for Tarspot disease (e.g., High, Medium, Low).",String
+gls_risk,"The calculated risk of GLS disease (from 0 to 1, where 1 is high risk).",Float
+gls_risk_class,"The risk classification for GLS disease (e.g., High, Medium, Low).",String
+fe_risk,"The calculated risk of Fusarium Ear disease (from 0 to 1, where 1 is high risk).",Float
+fe_risk_class,"The risk classification for Fusarium Ear disease (e.g., High, Medium, Low).",String
+whitemold_irr_30in_risk,The calculated risk of White Mold disease from irrigated areas (30 inches) (from 0 to 1).,Float
+whitemold_irr_15in_risk,The calculated risk of White Mold disease from irrigated areas (15 inches) (from 0 to 1).,Float
+whitemold_nirr_risk,The calculated risk of White Mold disease from non-irrigated areas (from 0 to 1).,Float

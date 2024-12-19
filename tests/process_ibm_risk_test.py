@@ -7,7 +7,7 @@ from ag_models_wrappers.process_ibm_risk import get_weather, get_ibm_weather
 
 class TestGetWeather(unittest.TestCase):
 
-    @patch('ag_models_wrappers.process_ibm_risk.get_ibm_weather')
+    @patch('ag_models_wrappers_docs.process_ibm_risk.get_ibm_weather')
     @patch('requests.get')
     def test_get_weather_success(self, mock_requests_get, mock_get_ibm_weather):
         # Mock response data for the IBM API
@@ -42,7 +42,7 @@ class TestGetWeather(unittest.TestCase):
         self.assertEqual(len(data['hourly']), 2)
         self.assertEqual(data['hourly']['temperature'][0], 22.5)
 
-    @patch('ag_models_wrappers.process_ibm_risk.get_ibm_weather')
+    @patch('ag_models_wrappers_docs.process_ibm_risk.get_ibm_weather')
     @patch('requests.get')
     def test_get_weather_empty_response(self, mock_requests_get, mock_get_ibm_weather):
         # Mock response data for an empty API response
@@ -60,7 +60,7 @@ class TestGetWeather(unittest.TestCase):
         self.assertIsNone(data['hourly'])
         self.assertIsNone(data['daily'])
 
-    @patch('ag_models_wrappers.process_ibm_risk.get_ibm_weather')
+    @patch('ag_models_wrappers_docs.process_ibm_risk.get_ibm_weather')
     @patch('requests.get')
     def test_get_weather_api_error(self, mock_requests_get, mock_get_ibm_weather):
         mock_response = MagicMock()

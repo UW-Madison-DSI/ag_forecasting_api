@@ -145,7 +145,7 @@ def stations_query(
 
 
 # Endpoint for querying data from IBM
-@app.get("/ag_models_wrappers/ibm")
+@app.get("/ag_models_wrappers_docs/ibm")
 def all_data_from_ibm_query(
     forecasting_date: str,  # Passed as part of the URL path
     latitude: float = Query(..., description="Latitude of the location"),
@@ -178,7 +178,7 @@ def all_data_from_ibm_query(
 
 
 # Endpoint for querying data from Wisconet. The retrieved information corresponds with daily aggregations.
-@app.get("/ag_models_wrappers/wisconet")
+@app.get("/ag_models_wrappers_docs/wisconet")
 def all_data_from_wisconet_query(
     forecasting_date: str,
     risk_days: int = 1,
