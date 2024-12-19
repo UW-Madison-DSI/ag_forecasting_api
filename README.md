@@ -1,5 +1,8 @@
-# pywisconet
+
 Python wrapper [API](https://connect.doit.wisc.edu/pywisconet_wrapper/docs)
+
+# pywisconet
+</details>
 
 for the [Wisconet](https://wisconet.wisc.edu/) [API v1](https://wisconet.wisc.edu/docs)
 

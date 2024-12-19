@@ -1,0 +1,15 @@
+Usage,Variable,Raw variable,Name for API,Description,Units,Tarspot,Gray leaf spot,Sporecaster (soybean),,
+User input in the app,growth_stage,growth_stage,growth_stage,"The growth stage of the crop (""V10"", ""R1"", ""R2"", ""R3"")",Character,yes,yes,yes (R1-R3),,
+,fungicide_applied,fungicide_applied,fungicide_applied,"""yes"" if fungicide was applied in the last 14 days, ""no"" otherwise",Character,yes,yes,no,,
+,risk_threshold,risk_threshold,risk_threshold,Action threshold for disease prediction,Percentage (%),yes,yes,yes,,
+,irrigated,irrigated,irrigated,"""yes"" if the field was irrigated in the last 14 days, ""no"" otherwise",Character,no,no,yes,,
+,row_spacing,row_spacing,row_spacing,Row spacing in inches for the crop (either 15 or 30 inches),Inches,no,no,yes,,
+From weather api (Wisconet),meanAT30MA,meanAT,mean_air_temp_30d_ma,30-day moving average of mean air temperature. Where MeanAT is the mean of all hourly observed temperatures for that day.,Degrees Celsius (°C),yes,no,no,,
+,maxRH30MA,MaxRH,max_rh_30d_ma,30-day moving average of maximum relative humidity. Where Max RH is the hourly maximum observed relative humidity for that day.,Percentage (%),yes,no,no,,
+,RH90.night.TOT14MA,RH90.night.TOT,tot_hrs_rh90_14d_ma,14-day moving average of total nighttime hours with 90% relative humidity or above (RH90.night.TOT) for each day. Where RH90.night.TOT is the daily total hours between 20:00 and 6:00 where the humidity was 90% or above.,,yes,no,no,,
+,minAT2130MA,minAT21,min_air_temp_21d_ma,21-day moving average of minimum air temperature. MinAT is the hourly minimum observed temperature for that day,Degrees Celsius (°C),no,yes,no,,
+,MinDP30MA,MinDP,min_dewpoint_30d_ma,30-day moving average of minimum dew point. Where MinDP is the hourly minimum observed dew point for that day.,Degrees Celsius (°C),no,yes,no,,
+,,MaxAT,max_air_temp_30d_ma,30-day moving averages of maximum air temperature (MaxAT) and maximum wind speed (MaxWS),Degrees Celsius (°C),no,no,yes,Irrigated,non irrigated
+,,MaxWS,max_windspeed_30d_ma,30-day moving averages of Maximum wind speed (MaxWS),Meters per second (m/s),no,no,yes,,non irrigated
+,,MaxRH,max_rh_30d_ma,30-day moving average of maximum relative humidity for irrigated fields,Percentage (%),no,no,yes,Irrigated,
+Threshold risk,,,,,,"20, 35","40, 60",-,,
