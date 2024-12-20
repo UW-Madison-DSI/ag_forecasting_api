@@ -4,8 +4,8 @@ This open-source forecasting tool provides plant disease predictions both as an 
 ## Acknowledgements:
 This is an initiative of the Open source Program Office at the University of Madison-Wisconsin.
 Visit our Dashboard:
-- GitHub Repo
-- Link
+- [Link](https://connect.doit.wisc.edu/tarspot_forecasting_app/)
+- [GitHub Repo](https://github.com/UW-Madison-DSI/corn_disease_forecast_api.git)
 
 ## ag_models_wrappers
 The ag_models_wrappers serve as the critical layer for providing crop model-based risk assessments tailored to weather data on specific locations eg Wisconet Stations or punctual locations in Wisconsin by IBM data. This component integrates various forecasting models to deliver localized risk predictions for plant diseases for a given forecasting date, enabling informed decision-making in agricultural management.
