@@ -1,12 +1,16 @@
 from zoneinfo import ZoneInfo
-import requests
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 from pytz import timezone
 from concurrent.futures import ThreadPoolExecutor
+import asyncio
+import pandas as pd
 
 from ag_models_wrappers.forecasting_models import *
+
+import requests
+session = requests.Session()
 
 base_url = "https://wisconet.wisc.edu/api/v1"
 
@@ -51,7 +55,7 @@ def api_call_wisconet_data_daily(station_id, input_date):
     }
 
     # Send the API request
-    response = requests.get(url, params=params)
+    response = session.get(url, params=params)
 
     # Check if the response is successful
     if response.status_code == 200:
@@ -128,7 +132,7 @@ def api_call_wisconet_data_rh(station_id, end_time):
         }
 
         # Make the GET request
-        response = requests.get(f"{base_url}{endpoint}", params=params)
+        response = session.get(f"{base_url}{endpoint}", params=params)
         scode = response.status_code
 
         # If the status code is 200, process the data
@@ -181,8 +185,9 @@ def api_call_wisconet_data_rh(station_id, end_time):
         print(f"Failed to retrieve or process data: {e}")
         return None
 
+
 def one_day_measurements(station_id, end_time, days):
-    '''
+    """
     Fetches and processes daily relative humidity and temperature data for a given station,
     and merges the latest data based on the specified number of days.
 
@@ -193,29 +198,32 @@ def one_day_measurements(station_id, end_time, days):
 
     Returns:
         pd.DataFrame: A merged DataFrame containing the processed data.
-    '''
+    """
     try:
-        if (days>7):
-            days = 8
-        if (days==None) or days==0:
+        # Validate the days parameter
+        if days is None or days == 0:
             days = 1
+        elif days > 7:
+            days = 8
 
-        # Fetch the relative humidity data
-        daily_rh_above_90 = api_call_wisconet_data_rh(station_id, end_time)
+        # Use a thread pool to run both API calls concurrently
+        with ThreadPoolExecutor(max_workers=20) as executor:
+            future_rh = executor.submit(api_call_wisconet_data_rh, station_id, end_time)
+            future_daily = executor.submit(api_call_wisconet_data_daily, station_id, end_time)
+            daily_rh_above_90 = future_rh.result()
+            result_df = future_daily.result()
+
+        # Validate the data
         if daily_rh_above_90 is None or daily_rh_above_90.empty:
             raise ValueError(f"No RH data found for station {station_id}.")
-
-        # Sort by collection_time and get the most recent `days` rows
-        daily_rh_above_90 = daily_rh_above_90.sort_values('date', ascending=False).head(days)
-        # Process the RH data: Convert collection_time to datetime and extract date
-
-        # Fetch the daily temperature data
-        result_df = api_call_wisconet_data_daily(station_id, end_time)
-        result_df = result_df.sort_values('date', ascending=False).head(days)
         if result_df is None or result_df.empty:
             raise ValueError(f"No daily data found for station {station_id}.")
 
-        # Process the daily data: Convert collection_time to datetime and extract date
+        # Process the data: sort by date and select the most recent rows
+        daily_rh_above_90 = daily_rh_above_90.sort_values('date', ascending=False).head(days)
+        result_df = result_df.sort_values('date', ascending=False).head(days)
+
+        # Merge on the 'date' column
         combined_df = pd.merge(
             daily_rh_above_90[['date', 'rh_above_90_night_14d_ma', 'rh_above_80_day_30d_ma']],
             result_df[['date', 'air_temp_max_c_30d_ma', 'air_temp_min_c_21d_ma',
@@ -223,7 +231,7 @@ def one_day_measurements(station_id, end_time, days):
             on='date', how='inner'
         )
 
-        # Add the station_id and sort by collection_time
+        # Add the station ID and sort again
         combined_df['station_id'] = station_id
         combined_df = combined_df.sort_values('date', ascending=False).head(days)
 
@@ -234,87 +242,151 @@ def one_day_measurements(station_id, end_time, days):
         return None
 
 
+def compute_risks(df_chunk):
+    """
+    Given a chunk of daily_data, calculate all risk metrics.
+    """
+    # Work on a copy to avoid modifying the original DataFrame slice.
+    df_chunk = df_chunk.copy()
+
+    # Calculate the tarspot risk (assuming it returns a tuple: (risk, risk_class))
+    df_chunk[['tarspot_risk', 'tarspot_risk_class']] = df_chunk.apply(
+        lambda row: pd.Series(
+            calculate_tarspot_risk_function(
+                row['air_temp_avg_c_30d_ma'],
+                row['rh_max_30d_ma'],
+                row['rh_above_90_night_14d_ma']
+            )
+        ),
+        axis=1
+    )
+
+    # Calculate the gray leaf spot risk (assuming it returns a tuple: (risk, risk_class))
+    df_chunk[['gls_risk', 'gls_risk_class']] = df_chunk.apply(
+        lambda row: pd.Series(
+            calculate_gray_leaf_spot_risk_function(
+                row['air_temp_min_c_21d_ma'],
+                row['dp_min_30d_c_ma']
+            )
+        ),
+        axis=1
+    )
+
+    # Calculate the frogeye leaf spot risk (assuming it returns a tuple: (risk, risk_class))
+    df_chunk[['fe_risk', 'fe_risk_class']] = df_chunk.apply(
+        lambda row: pd.Series(
+            calculate_frogeye_leaf_spot_function(
+                row['air_temp_max_c_30d_ma'],
+                row['rh_above_80_day_30d_ma']
+            )
+        ),
+        axis=1
+    )
+
+    # Calculate the white mold irrigated risk.
+    # Assuming calculate_irrigated_risk returns a tuple: (risk_30in, risk_15in)
+    df_chunk[['whitemold_irr_30in_risk', 'whitemold_irr_15in_risk']] = df_chunk.apply(
+        lambda row: pd.Series(
+            calculate_irrigated_risk(
+                row['air_temp_max_c_30d_ma'],
+                row['rh_max_30d_ma']
+            )
+        ),
+        axis=1
+    )
+
+    # Calculate the white mold non-irrigated risk (assuming a single value is returned)
+
+
+    return df_chunk
+
+
 # Main function to retrieve and process data for all stations
+# =============================================================================
+# Main Function: Retrieve and Process Data for All Stations
+# =============================================================================
 def retrieve_tarspot_all_stations(input_date, input_station_id, days):
-    '''
+    """
+    Retrieves and processes data for all stations, computes risk measures in parallel,
+    and returns the final merged DataFrame with selected columns.
 
     Args:
-        input_date:
-        input_station_id:
+        input_date (str): The input date in YYYY-MM-DD format.
+        input_station_id (str or None): If provided, filters to a specific station.
+        days (int): Number of days of data to retrieve.
 
     Returns:
+        pd.DataFrame: Processed DataFrame with risk metrics.
+    """
+    # Global or configurable variables
+    min_days_active = 38
+    stations_to_exclude = ['MITEST1', 'WNTEST1']
 
-    '''
+    # Define the list of columns you want in your final DataFrame
+    FINAL_COLUMNS = [
+        'station_id', 'date', 'forecasting_date', 'location',
+        'station_name', 'city', 'county', 'earliest_api_date', 'latitude',
+        'longitude', 'region', 'state', 'station_timezone',
+        'tarspot_risk', 'tarspot_risk_class',
+        'gls_risk', 'gls_risk_class',
+        'fe_risk', 'fe_risk_class',
+        'whitemold_irr_30in_risk',
+        'whitemold_irr_15in_risk'
+        #'whitemold_nirr_risk'
+    ]
 
-    allstations_url = f"https://connect.doit.wisc.edu/pywisconet_wrapper/wisconet/active_stations/?min_days_active={min_days_active}&start_date={input_date}"
+    # Retrieve all active stations data
+    allstations_url = (
+        f"https://connect.doit.wisc.edu/pywisconet_wrapper/wisconet/active_stations/"
+        f"?min_days_active={min_days_active}&start_date={input_date}"
+    )
     response = requests.get(allstations_url)
 
     if response.status_code == 200:
         allstations = pd.DataFrame(response.json())
-        print("all stations -----", allstations)
+        print("All stations retrieved:", allstations)
 
-        # Filter stations if input_station_id is provided
         if input_station_id:
-            stations = allstations[(allstations['station_id'] == input_station_id)
-                        & (~allstations['station_id'].isin(stations_to_exclude))]
+            stations = allstations[
+                (allstations['station_id'] == input_station_id) &
+                (~allstations['station_id'].isin(stations_to_exclude))
+            ]
+            # Retrieve data for the specific station
             all_results = one_day_measurements(input_station_id, input_date, days)
-
         else:
             stations = allstations[~allstations['station_id'].isin(stations_to_exclude)]
+
             def get_daily_data(station_id, input_date, days):
                 return one_day_measurements(station_id, input_date, days)
 
             station_ids = stations['station_id'].values
 
-            with ThreadPoolExecutor() as executor:
-                # Map the get_daily_data function to each station_id
+            # Retrieve data for all stations concurrently
+            with ThreadPoolExecutor(max_workers=10) as executor:
                 st_res_list = list(executor.map(lambda st: get_daily_data(st, input_date, days), station_ids))
-
-            # Combine the results
             all_results = pd.concat(st_res_list, ignore_index=True)
 
+        # Merge station info with API data
+        daily_data = stations.merge(all_results, on='station_id', how='inner')
 
-        daily_data = (stations
-                  .merge(all_results, on='station_id', how='inner'))
+        # -------------------------------------------------------------------------
+        # Compute risk metrics in parallel by splitting daily_data into chunks
+        # -------------------------------------------------------------------------
+        chunk_size = 100
+        chunks = [
+            daily_data.iloc[i:i + chunk_size]
+            for i in range(0, len(daily_data), chunk_size)
+        ]
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            processed_chunks = list(executor.map(compute_risks, chunks))
+        daily_data = pd.concat(processed_chunks, ignore_index=True)
 
-        daily_data = daily_data.join(
-            daily_data.apply(lambda row: calculate_tarspot_risk_function(
-                row['air_temp_avg_c_30d_ma'], row['rh_max_30d_ma'], row['rh_above_90_night_14d_ma']), axis=1)
-        )
-
-        daily_data = daily_data.join(
-            daily_data.apply(lambda row: calculate_gray_leaf_spot_risk_function(
-                row['air_temp_min_c_21d_ma'], row['dp_min_30d_c_ma']), axis=1)
-        )
-
-        daily_data = daily_data.join(
-            daily_data.apply(lambda row: calculate_frogeye_leaf_spot_function(
-                row['air_temp_max_c_30d_ma'], row['rh_above_80_day_30d_ma']), axis=1)
-        )
-
-        daily_data = daily_data.join(
-            daily_data.apply(lambda row: calculate_irrigated_risk(
-                row['air_temp_max_c_30d_ma'], row['rh_max_30d_ma']), axis=1)
-        )
-
-        daily_data = daily_data.join(daily_data.apply(lambda row: calculate_non_irrigated_risk(
-                row['air_temp_max_c_30d_ma'], row['max_ws_30d_ma']), axis=1)
-        )
+        # Post-process date columns and create a forecasting date
         daily_data['date'] = pd.to_datetime(daily_data['date'])
-
         daily_data['forecasting_date'] = (daily_data['date'] + timedelta(days=1)).dt.strftime('%Y-%m-%d')
 
-
-        return daily_data[['station_id','date','forecasting_date', 'location',
-                            'station_name', 'city', 'county', 'earliest_api_date', 'latitude',
-                            'longitude', 'region', 'state',
-                            'station_timezone',
-                            'tarspot_risk', 'tarspot_risk_class',
-                            'gls_risk', 'gls_risk_class',
-                            'fe_risk', 'fe_risk_class',
-                            'whitemold_irr_30in_risk',
-                            'whitemold_irr_15in_risk',
-                            'whitemold_nirr_risk']]
+        # Return the final DataFrame with selected columns
+        return daily_data[FINAL_COLUMNS]
     else:
         print(f"Error fetching station data, status code {response.status_code}")
         return None
