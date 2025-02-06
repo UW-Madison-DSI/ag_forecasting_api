@@ -4,7 +4,7 @@ import numpy as np
 from datetime import datetime, timedelta
 from pytz import timezone
 
-
+@staticmethod
 def fahrenheit_to_celsius(x):
     '''
 
@@ -16,6 +16,7 @@ def fahrenheit_to_celsius(x):
     '''
     return (x - 32) * 5/9
 
+@staticmethod
 def rolling_mean(series, window):
     '''
 
@@ -28,6 +29,7 @@ def rolling_mean(series, window):
     '''
     return series.rolling(window=window, min_periods=window).mean()
 
+@staticmethod
 def logistic_f(logit):
     '''
 
