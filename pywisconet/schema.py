@@ -30,22 +30,22 @@ class Field(BaseModel):
 
 class Station(BaseModel):
     id: int
-    elevation: float | None
+    #elevation: float | None
     latitude: float | None
     longitude: float | None
     city: str | None
     county: str | None
     location: str | None
     region: str | None
-    state: str | None
+    #state: str | None
     station_id: str | None
     station_name: str | None
     station_slug: str | None
     station_timezone: str | None
-    earliest_api_date: datetime | None
-    days_active: float | None
-    campbell_cloud_id: str | None
-    legacy_id: str | None
+    #earliest_api_date: datetime | None
+    #days_active: float | None
+    #campbell_cloud_id: str | None
+    #legacy_id: str | None
 
 
 class ShortMeasure(BaseModel):

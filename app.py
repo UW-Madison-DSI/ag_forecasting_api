@@ -137,7 +137,7 @@ def stations_query(
     """
     try:
         start_date = datetime.strptime(start_date.strip(), "%Y-%m-%d").replace(tzinfo=ZoneInfo("UTC"))
-        result = all_stations(min_days_active, start_date)
+        result = all_stations(10, start_date)
         if result is None:
             raise HTTPException(status_code=404, detail="Stations not found")
         return result
@@ -197,6 +197,8 @@ def all_data_from_wisconet_query(
     """
     try:
         df = retrieve_tarspot_all_stations(input_date=forecasting_date, input_station_id=station_id, days=risk_days)
+        print("----------------------------")
+        print(df)
         df_cleaned = df.replace([np.inf, -np.inf, np.nan], None).where(pd.notnull(df), None)
         return df_cleaned.to_dict(orient="records")
     except ValueError as e:
@@ -235,3 +237,4 @@ def create_wsgi_app():
     return app
 
 wsgi_app = WSGIMiddleware(create_wsgi_app())
+
