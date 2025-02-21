@@ -325,8 +325,10 @@ def retrieve_tarspot_all_stations(input_date, input_station_id, days):
     # Define the list of columns you want in your final DataFrame
     FINAL_COLUMNS = [
         'station_id', 'date', 'forecasting_date', 'location',
-        'station_name', 'city', 'county', 'earliest_api_date', 'latitude',
-        'longitude', 'region', 'state', 'station_timezone',
+        'station_name', 'city', 'county', #'earliest_api_date',
+        'latitude',
+        'longitude', 'region', 'state',
+        'station_timezone',
         'tarspot_risk', 'tarspot_risk_class',
         'gls_risk', 'gls_risk_class',
         'fe_risk', 'fe_risk_class',
@@ -334,13 +336,15 @@ def retrieve_tarspot_all_stations(input_date, input_station_id, days):
         'whitemold_irr_15in_risk'
         #'whitemold_nirr_risk'
     ]
-
+    print('input_date --->>>>>',input_date)
     # Retrieve all active stations data
     allstations_url = (
         f"https://connect.doit.wisc.edu/pywisconet_wrapper/wisconet/active_stations/"
-        f"?min_days_active={min_days_active}&start_date={input_date}"
+        f"?min_days_active=15&start_date={input_date}"
     )
     response = requests.get(allstations_url)
+
+    print('------------->>> ',response)
 
     if response.status_code == 200:
         allstations = pd.DataFrame(response.json())
@@ -383,6 +387,7 @@ def retrieve_tarspot_all_stations(input_date, input_station_id, days):
 
         # Post-process date columns and create a forecasting date
         daily_data['date'] = pd.to_datetime(daily_data['date'])
+        daily_data['state'] = 'WI'
         daily_data['forecasting_date'] = (daily_data['date'] + timedelta(days=1)).dt.strftime('%Y-%m-%d')
 
         # Return the final DataFrame with selected columns
@@ -390,3 +395,4 @@ def retrieve_tarspot_all_stations(input_date, input_station_id, days):
     else:
         print(f"Error fetching station data, status code {response.status_code}")
         return None
+
