@@ -137,7 +137,8 @@ def stations_query(
     """
     try:
         start_date = datetime.strptime(start_date.strip(), "%Y-%m-%d").replace(tzinfo=ZoneInfo("UTC"))
-        result = all_stations(10, start_date)
+        result = all_stations(min_days_active, start_date)
+        print(result)
         if result is None:
             raise HTTPException(status_code=404, detail="Stations not found")
         return result
