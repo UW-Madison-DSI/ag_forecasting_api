@@ -30,13 +30,13 @@ def all_stations(n_days_active: int,
 
     for station in response.json():
         station_tz = station.pop("station_timezone")
-        #earliest_api_date = datetime.strptime(station.pop("earliest_api_date"), "%m/%d/%Y").replace(
-        #    tzinfo=ZoneInfo("UTC"))
-        #current_date = start_date#.astimezone(ZoneInfo("UTC"))
-        days_active = 80#(current_date - earliest_api_date).days
+        earliest_api_date = datetime.strptime(station.pop("earliest_api_date"), "%m/%d/%Y").replace(
+            tzinfo=ZoneInfo("UTC"))
+        current_date = start_date.astimezone(ZoneInfo("UTC"))
+        days_active = (current_date - earliest_api_date).days
 
         #print("Days active:", days_active)
-        #elevation = float(station.pop("elevation"))
+        elevation = float(station.pop("elevation"))
         latitude = float(station.pop("latitude"))
         longitude = float(station.pop("longitude"))
         if (days_active > n_days_active):
@@ -45,7 +45,7 @@ def all_stations(n_days_active: int,
                     station_timezone=station_tz,
                     earliest_api_date=earliest_api_date,
                     days_active=days_active,
-                    #elevation=elevation,
+                    elevation=elevation,
                     latitude=latitude,
                     longitude=longitude,
                     **station,  # Include any additional fields dynamically
@@ -77,11 +77,6 @@ def bulk_measures(station_id: str, start_time: datetime, end_time: datetime, fie
     :param timeout: float, httpx timeout.
     :return: BulkMeasures object
     """
-    # Define Central Time timezone, the start_date and end_date are in CT, so then i need to transform it into CT and unix to build the query to Wisconet
-    # Assume start_time and end_time are datetime objects in America/Chicago timezone
-    ct_tz = ZoneInfo("America/Chicago")
-    start_time_ct = start_time.replace(tzinfo=ct_tz)
-    end_time_ct = end_time.replace(tzinfo=ct_tz)
 
     # Parse the date string and assume the time is midnight in CT
     start_date_utc = start_date_ct.astimezone(timezone('UTC'))
