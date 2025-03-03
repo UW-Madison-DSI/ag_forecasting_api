@@ -143,7 +143,7 @@ def calculate_frogeye_leaf_spot_function(maxAT30, rh80tot30):
     Returns:
 
     '''
-    logit_fe = -5.92485 - (0.1220 * maxAT30) + (0.1732 * rh80tot30)
+    logit_fe = -5.92485 + (0.1220 * maxAT30) + (0.1732 * rh80tot30)
     prob_logit_fe = logistic_f(logit_fe)
 
     if prob_logit_fe < 0.5:
