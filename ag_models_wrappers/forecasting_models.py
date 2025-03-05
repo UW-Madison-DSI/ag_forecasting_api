@@ -4,6 +4,13 @@ import numpy as np
 from datetime import datetime, timedelta
 from pytz import timezone
 
+'''
+Units:
+- Air temp are Celsius
+- Dew Point Celsius
+- RH %
+'''
+
 @staticmethod
 def fahrenheit_to_celsius(x):
     '''
@@ -43,19 +50,19 @@ def logistic_f(logit):
 
 
 ###################### Damon et. al.
-def calculate_tarspot_risk_function(meanAT, maxRH, rh90_night_tot):
+def calculate_tarspot_risk_function(meanAT30d, maxRH30d, rh90_night_tot14d):
     '''
 
     Args:
-        meanAT:
-        maxRH:
-        rh90_night_tot:
+        meanAT: Where MeanAT is the mean of all hourly observed temperatures for that day, 30 days moving average
+        Max RH is the hourly maximum observed relative humidity for that day, 30 days moving average
+        RH90.night.TOT is the daily total hours between 20:00 and 6:00 where the humidity was 90% or above, 14 days moving average.
 
     Returns:
 
     '''
-    logit_LR4 = 32.06987 - (0.89471 * meanAT) - (0.14373 * maxRH)
-    logit_LR6 = 20.35950 - (0.91093 * meanAT) - (0.29240 * rh90_night_tot)
+    logit_LR4 = 32.06987 - (0.89471 * meanAT30d) - (0.14373 * maxRH30d)
+    logit_LR6 = 20.35950 - (0.91093 * meanAT30d) - (0.29240 * rh90_night_tot14d)
     probabilities = [logistic_f(logit_LR4), logistic_f(logit_LR6)]
     ensemble_prob = np.mean(probabilities)
 
@@ -75,11 +82,12 @@ def calculate_gray_leaf_spot_risk_function(minAT21, minDP30):
     '''
 
     Args:
-        minAT21:
-        minDP30:
+        minAT21: MinAT is the hourly minimum observed temperature for that day, 21 moving averaged
+        minDP30: is the hourly minimum observed dew point for that day, 30 days moving averaged
 
     Returns:
 
+    Implicit rules: Growth stage within V10 and R3 and Not irrigation total needed
     '''
     prob = logistic_f(-2.9467 - (0.03729 * minAT21) + (0.6534 * minDP30))
 
@@ -99,8 +107,8 @@ def calculate_non_irrigated_risk(maxAT30MA, maxWS30MA):
     '''
 
     Args:
-        maxAT30MA:
-        maxWS30MA:
+        maxAT30MA: maximum air temperature Celsius 30 days moving average
+        maxWS30MA: maximum wind speed 30 days moving average
 
     Returns:
 
@@ -115,8 +123,8 @@ def calculate_irrigated_risk(maxAT30MA, maxRH30MA):
     '''
 
     Args:
-        maxAT30MA:
-        maxRH30MA:
+        maxAT30MA: maximum air temp Celsius, 30 days moving average
+        maxRH30MA: maximum relative humidity pct, 30 days moving average
 
     Returns:
 
@@ -137,11 +145,12 @@ def calculate_frogeye_leaf_spot_function(maxAT30, rh80tot30):
     '''
 
     Args:
-        maxAT30:
-        rh80tot30:
+        maxAT30: MaxAT is the hourly maximum observed temperature for that day., 30 days moving average
+        rh80tot30: is the daily total hours, where humidity was 80% or above, 30 days moving averaged
 
     Returns:
 
+    Implicit rules: Growth stage within R1 and R5, No irrigation total needed
     '''
     logit_fe = -5.92485 + (0.1220 * maxAT30) + (0.1732 * rh80tot30)
     prob_logit_fe = logistic_f(logit_fe)
