@@ -403,7 +403,6 @@ async def retrieve_tarspot_all_stations_async1(input_date, input_station_id=None
         # Return the final DataFrame with selected columns
         return daily_data[FINAL_COLUMNS]
 
-
 async def retrieve_tarspot_all_stations_async(input_date, input_station_id=None, days=1):
     """
     Main asynchronous function to retrieve and process data for all stations.
@@ -432,14 +431,15 @@ async def retrieve_tarspot_all_stations_async(input_date, input_station_id=None,
     ct = pytz.timezone('America/Chicago')
     today_ct = datetime.now(ct)
 
-    # Ahora, en lugar de solo verificar el día, se comprueba si es día 1 y a las 6 am CT
+    # If it's not day 1 at 6 am CT, load from backup and filter
     if not (today_ct.day == 1 and today_ct.hour == 6):
         df = pd.read_csv('stations_backup.csv')
         df['earliest_api_date'] = pd.to_datetime(df['earliest_api_date'], utc=True).dt.tz_localize(None)
-        # Filtering by earliest_api_date
+        # Exclude stations in the exclusion list
+        df = df[~df['station_id'].isin(STATIONS_TO_EXCLUDE)]
+        # Filter by earliest_api_date
         input_date_transformed = pd.to_datetime(input_date)
         date_limit = input_date_transformed - pd.Timedelta(days=32)
-
         allstations = df[df['earliest_api_date'] < pd.to_datetime(date_limit)]
         print(allstations[['station_id', 'earliest_api_date']])
     else:
@@ -447,31 +447,38 @@ async def retrieve_tarspot_all_stations_async(input_date, input_station_id=None,
             if response.status == 200:
                 stations_data = await response.json()
                 allstations = pd.DataFrame(stations_data)
+                allstations = allstations[~allstations['station_id'].isin(STATIONS_TO_EXCLUDE)]
                 allstations.to_csv('stations_backup.csv')
                 print("All stations retrieved:", allstations)
             else:
                 print(f"Error fetching station data, status code {response.status}")
                 return None
 
+    # Check if a specific station or a list of stations is provided
     if input_station_id:
-        # Filter for the single station while excluding stations if needed
-        stations = allstations[
-            (allstations['station_id'] == input_station_id) &
-            (~allstations['station_id'].isin(STATIONS_TO_EXCLUDE))
-            ]
-        # Process single station
-        async with (await get_async_session()) as data_session:
-            all_results = await one_day_measurements_async(data_session, input_station_id, input_date, days)
+        # Check if input_station_id is a comma-separated string
+        if isinstance(input_station_id, str) and ',' in input_station_id:
+            input_str = input_station_id
+            station_list = [s.strip() for s in input_str.split(",")]
+            stations = allstations[allstations['station_id'].isin(station_list)]
+            async with (await get_async_session()) as data_session:
+                tasks = [one_day_measurements_async(data_session, st, input_date, days) for st in station_list]
+                results = await asyncio.gather(*tasks)
+                valid_results = [res for res in results if res is not None]
+                if not valid_results:
+                    return None
+                all_results = pd.concat(valid_results, ignore_index=True)
+        else:
+            # Process as a single station if input_station_id is not comma separated.
+            stations = allstations[allstations['station_id'] == input_station_id]
+            async with (await get_async_session()) as data_session:
+                all_results = await one_day_measurements_async(data_session, input_station_id, input_date, days)
     else:
         stations = allstations[~allstations['station_id'].isin(STATIONS_TO_EXCLUDE)]
         station_ids = stations['station_id'].values
-
-        # Process all stations concurrently using asyncio
         async with (await get_async_session()) as data_session:
             tasks = [one_day_measurements_async(data_session, st, input_date, days) for st in station_ids]
             results = await asyncio.gather(*tasks)
-
-        # Filter out None results and concatenate
         valid_results = [res for res in results if res is not None]
         if not valid_results:
             return None

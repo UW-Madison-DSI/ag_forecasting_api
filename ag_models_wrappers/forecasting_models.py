@@ -67,11 +67,11 @@ def calculate_tarspot_risk_function(meanAT30d, maxRH30d, rh90_night_tot14d):
     ensemble_prob = np.mean(probabilities)
 
     if ensemble_prob < 0.2:
-        risk_class = "Low"
+        risk_class = "1.Low"
     elif ensemble_prob > 0.35:
-        risk_class = "High"
+        risk_class = "3.High"
     elif ensemble_prob >= .2 or ensemble_prob <= .35:
-        risk_class = "Moderate"
+        risk_class = "2.Moderate"
     else:
         risk_class= "No class"
 
@@ -92,11 +92,11 @@ def calculate_gray_leaf_spot_risk_function(minAT21, minDP30):
     prob = logistic_f(-2.9467 - (0.03729 * minAT21) + (0.6534 * minDP30))
 
     if prob < 0.2:
-        risk_class = "Low"
+        risk_class = "1.Low"
     elif prob > 0.6:
-        risk_class = "High"
+        risk_class = "3.High"
     elif prob >= .2 or prob <= .6:
-        risk_class = "Moderate"
+        risk_class = "2.Moderate"
     else:
         risk_class= "No class"
 
@@ -156,11 +156,11 @@ def calculate_frogeye_leaf_spot_function(maxAT30, rh80tot30):
     prob_logit_fe = logistic_f(logit_fe)
 
     if prob_logit_fe < 0.5:
-        risk_class = "Low"
+        risk_class = "1.Low"
     elif prob_logit_fe > 0.6:
-        risk_class = "High"
+        risk_class = "3.High"
     elif prob_logit_fe>=.5 or prob_logit_fe<=.6:
-        risk_class = "Moderate"
+        risk_class = "2.Moderate"
     else:
         risk_class = "No class"
 
