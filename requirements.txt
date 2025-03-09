@@ -18,3 +18,4 @@ pydantic
 typing
 httpx
 shapely
+aiohttp>=3.8.1
