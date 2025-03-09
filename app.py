@@ -197,9 +197,10 @@ def all_data_from_wisconet_query(
         dict: Cleaned weather data as JSON serializable records.
     """
     try:
-        df = retrieve_tarspot_all_stations(input_date=forecasting_date, input_station_id=station_id, days=risk_days)
+        #df = retrieve_tarspot_all_stations_optimized(input_date=forecasting_date, input_station_id=station_id, days=risk_days)
+        df = main(input_date=forecasting_date, input_station_id=station_id, days=risk_days)
         print("----------------------------")
-        print(df)
+        print(df[['station_id','forecasting_date','fe_risk']])
         df_cleaned = df.replace([np.inf, -np.inf, np.nan], None).where(pd.notnull(df), None)
         return df_cleaned.to_dict(orient="records")
     except ValueError as e:
