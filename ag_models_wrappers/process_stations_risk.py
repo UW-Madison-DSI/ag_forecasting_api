@@ -213,6 +213,7 @@ def compute_risks(df_chunk):
     """Compute risk metrics for a chunk of data"""
     df_chunk = df_chunk.copy()
 
+    print('--->',df_chunk.columns)
     # Calculate risks in parallel using apply with n_jobs parameter
     # or split further into smaller chunks for parallelization
 
@@ -267,15 +268,16 @@ def compute_risks(df_chunk):
     df_chunk[['whitemold_irr_30in_risk', 'whitemold_irr_15in_risk']] = whitemold_irr_results
 
     # For white mold non-irrigated risk
-    #whitemold_nirr_results = df_chunk.apply(
-    #    lambda row: pd.Series(
-    #        calculate_non_irrigated_risk(
-    #            row['air_temp_max_c_30d_ma'],
-    #            row['max_ws_30d_ma']
-    #        )
-    #    ),
-    #    axis=1
-    #)
+    whitemold_nirr_results = df_chunk.apply(
+        lambda row: pd.Series(
+            calculate_non_irrigated_risk(
+                row['air_temp_max_c_30d_ma'],
+                row['max_ws_30d_ma']
+            )
+        ),
+        axis=1
+    )
+    df_chunk[['whitemold_nirr_risk', 'whitemold_nirr_risk_class']] = whitemold_nirr_results
     #df_chunk['whitemold_nirr_risk'] = whitemold_nirr_results
 
     return df_chunk
@@ -416,8 +418,8 @@ async def retrieve_tarspot_all_stations_async(input_date, input_station_id=None,
         'gls_risk', 'gls_risk_class',
         'fe_risk', 'fe_risk_class',
         'whitemold_irr_30in_risk',
-        'whitemold_irr_15in_risk'
-        # 'whitemold_nirr_risk'
+        'whitemold_irr_15in_risk',
+        'whitemold_nirr_risk'
     ]
 
     print('input_date --->>>>>', input_date)
@@ -441,6 +443,7 @@ async def retrieve_tarspot_all_stations_async(input_date, input_station_id=None,
         input_date_transformed = pd.to_datetime(input_date)
         date_limit = input_date_transformed - pd.Timedelta(days=32)
         allstations = df[df['earliest_api_date'] < pd.to_datetime(date_limit)]
+        print(allstations.columns)
         print(allstations[['station_id', 'earliest_api_date']])
     else:
         async with session.get(allstations_url) as response:
@@ -484,6 +487,7 @@ async def retrieve_tarspot_all_stations_async(input_date, input_station_id=None,
             return None
         all_results = pd.concat(valid_results, ignore_index=True)
 
+    print(all_results.columns)
     # Merge station info with API data
     daily_data = stations.merge(all_results, on='station_id', how='inner')
 
@@ -505,7 +509,7 @@ async def retrieve_tarspot_all_stations_async(input_date, input_station_id=None,
     daily_data['date'] = pd.to_datetime(daily_data['date'])
     daily_data['state'] = 'WI'
     daily_data['forecasting_date'] = (daily_data['date'] + timedelta(days=1)).dt.strftime('%Y-%m-%d')
-
+    print(daily_data.columns)
     print("computed:", daily_data[['station_id', 'forecasting_date']])
     return daily_data[FINAL_COLUMNS]
 
