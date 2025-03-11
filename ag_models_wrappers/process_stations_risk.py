@@ -265,7 +265,7 @@ def compute_risks(df_chunk):
         ),
         axis=1
     )
-    df_chunk[['whitemold_irr_30in_risk', 'whitemold_irr_15in_risk']] = whitemold_irr_results
+    df_chunk[['whitemold_irr_30in_risk', 'whitemold_irr_15in_risk', 'whitemold_irr_class']] = whitemold_irr_results
 
     # For white mold non-irrigated risk
     whitemold_nirr_results = df_chunk.apply(
@@ -345,66 +345,6 @@ async def get_stations_with_caching(session, input_date):
                 return None
 
 
-# Update the main retrieve function to use the cached stations
-async def retrieve_tarspot_all_stations_async1(input_date, input_station_id=None, days=1):
-    """
-    Main asynchronous function to retrieve and process data for all stations
-    """
-    FINAL_COLUMNS = [
-        'station_id', 'date', 'forecasting_date', 'location',
-        'station_name', 'city', 'county', 'latitude',
-        'longitude', 'region', 'state',
-        'station_timezone',
-        'tarspot_risk', 'tarspot_risk_class',
-        'gls_risk', 'gls_risk_class',
-        'fe_risk', 'fe_risk_class',
-        'whitemold_irr_30in_risk',
-        'whitemold_irr_15in_risk'
-    ]
-
-    print('input_date --->>>>>', input_date)
-
-    async with aiohttp.ClientSession() as session:
-        # Use the cached station data
-        allstations = await get_stations_with_caching(session, input_date)
-
-        if allstations is None:
-            return None
-
-        print("Stations retrieved:", len(allstations))
-
-        if input_station_id:
-            stations = allstations[
-                (allstations['station_id'] == input_station_id) &
-                (~allstations['station_id'].isin(STATIONS_TO_EXCLUDE))
-                ]
-            # Process single station
-            async with await get_async_session() as data_session:
-                all_results = await one_day_measurements_async(data_session, input_station_id, input_date, days)
-        else:
-            stations = allstations[~allstations['station_id'].isin(STATIONS_TO_EXCLUDE)]
-            station_ids = stations['station_id'].values
-
-            # Process all stations concurrently using asyncio
-            async with await get_async_session() as data_session:
-                tasks = [one_day_measurements_async(data_session, st, input_date, days) for st in station_ids]
-                results = await asyncio.gather(*tasks)
-
-                # Filter out None results and concat
-                valid_results = [res for res in results if res is not None]
-                if not valid_results:
-                    return None
-                all_results = pd.concat(valid_results, ignore_index=True)
-
-        # Rest of the function remains the same...
-        # Merge station info with API data
-        daily_data = stations.merge(all_results, on='station_id', how='inner')
-
-        # Compute risk metrics code...
-
-        # Return the final DataFrame with selected columns
-        return daily_data[FINAL_COLUMNS]
-
 async def retrieve_tarspot_all_stations_async(input_date, input_station_id=None, days=1):
     """
     Main asynchronous function to retrieve and process data for all stations.
@@ -417,9 +357,8 @@ async def retrieve_tarspot_all_stations_async(input_date, input_station_id=None,
         'tarspot_risk', 'tarspot_risk_class',
         'gls_risk', 'gls_risk_class',
         'fe_risk', 'fe_risk_class',
-        'whitemold_irr_30in_risk',
-        'whitemold_irr_15in_risk',
-        'whitemold_nirr_risk'
+        'whitemold_irr_30in_risk','whitemold_irr_15in_risk','whitemold_irr_class',
+        'whitemold_nirr_risk','whitemold_nirr_risk_class'
     ]
 
     print('input_date --->>>>>', input_date)

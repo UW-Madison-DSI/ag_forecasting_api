@@ -66,14 +66,16 @@ def calculate_tarspot_risk_function(meanAT30d, maxRH30d, rh90_night_tot14d):
     probabilities = [logistic_f(logit_LR4), logistic_f(logit_LR6)]
     ensemble_prob = np.mean(probabilities)
 
-    if ensemble_prob < 0.2:
-        risk_class = "1.Low"
-    elif ensemble_prob > 0.35:
-        risk_class = "3.High"
-    elif ensemble_prob >= .2 or ensemble_prob <= .35:
-        risk_class = "2.Moderate"
+    risk_class = 'Inactive'
+    if meanAT30d<10:
+        risk_class='Inactive'
     else:
-        risk_class= "No class"
+        if ensemble_prob < 0.2:
+            risk_class = "1.Low"
+        elif ensemble_prob > 0.35:
+            risk_class = "3.High"
+        elif ensemble_prob >= .2 or ensemble_prob <= .35:
+            risk_class = "2.Moderate"
 
     return pd.Series({"tarspot_risk": ensemble_prob, "tarspot_risk_class": risk_class})
 
@@ -91,14 +93,14 @@ def calculate_gray_leaf_spot_risk_function(minAT21, minDP30):
     '''
     prob = logistic_f(-2.9467 - (0.03729 * minAT21) + (0.6534 * minDP30))
 
+    risk_class = "No class"
     if prob < 0.2:
         risk_class = "1.Low"
     elif prob > 0.6:
         risk_class = "3.High"
     elif prob >= .2 or prob <= .6:
         risk_class = "2.Moderate"
-    else:
-        risk_class= "No class"
+
 
     return pd.Series({"gls_risk": prob, "gls_risk_class": risk_class})
 
@@ -116,7 +118,19 @@ def calculate_non_irrigated_risk(maxAT30MA, maxWS30MA):
     logit_nirr = (-0.47 * maxAT30MA) - (1.01 * maxWS30MA) + 16.65
     prob = logistic_f(logit_nirr)
 
-    return pd.Series({"whitemold_nirr_risk": prob, "whitemold_nirr_risk_class": "NoClass"})
+    risk_class = 'Inactive'
+
+    if maxAT30MA<10:
+        risk_class='Inactive'
+    else:
+        if prob<.2:
+            risk_class = '1.Low'
+        elif prob>.35:
+            risk_class = '3.High'
+        else:
+            risk_class = '2.Moderate'
+
+    return pd.Series({"whitemold_nirr_risk": prob, "whitemold_nirr_risk_class": risk_class})
 
 
 def calculate_irrigated_risk(maxAT30MA, maxRH30MA):
@@ -135,9 +149,23 @@ def calculate_irrigated_risk(maxAT30MA, maxRH30MA):
     logit_irr_15 = (-2.38 * 0) + (0.65 * maxAT30MA) + (0.38 * maxRH30MA) - 52.65
     prob_logit_irr_15 = logistic_f(logit_irr_15)
 
+    risk_class = 'Inactive'
+
+    if maxAT30MA<10:
+        risk_class='Inactive'
+    else:
+
+        if prob_logit_irr_15<.05:
+            risk_class = '1.Low'
+        elif prob_logit_irr_15>.05:
+            risk_class = '3.High'
+        else:
+            risk_class = '2.Moderate'
+
     return pd.Series({
         "whitemold_irr_30in_risk": prob_logit_irr_30,
-        "whitemold_irr_15in_risk": prob_logit_irr_15
+        "whitemold_irr_15in_risk": prob_logit_irr_15,
+        "whitemold_irr_class": risk_class
     })
 
 
@@ -155,13 +183,12 @@ def calculate_frogeye_leaf_spot_function(maxAT30, rh80tot30):
     logit_fe = -5.92485 + (0.1220 * maxAT30) + (0.1732 * rh80tot30)
     prob_logit_fe = logistic_f(logit_fe)
 
+    risk_class = "No class"
     if prob_logit_fe < 0.5:
         risk_class = "1.Low"
     elif prob_logit_fe > 0.6:
         risk_class = "3.High"
     elif prob_logit_fe>=.5 or prob_logit_fe<=.6:
         risk_class = "2.Moderate"
-    else:
-        risk_class = "No class"
 
     return pd.Series({"fe_risk": prob_logit_fe, "fe_risk_class": risk_class})

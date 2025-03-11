@@ -6,10 +6,21 @@ from pytz import timezone
 
 # Set up your IBM API key
 import os
-from ag_models_wrappers.forecasting_models import *
+from ag_models_wrappers.forecasting_models import (
+    rolling_mean,
+    calculate_tarspot_risk_function,
+    calculate_gray_leaf_spot_risk_function,
+    calculate_frogeye_leaf_spot_function,
+    calculate_irrigated_risk,
+    calculate_non_irrigated_risk
+)
 
 
 API_KEY = os.getenv("API_KEY")
+
+def kmh_to_mps(speed_kmh):
+    """Convert speed from km/h to m/s."""
+    return speed_kmh / 3.6
 
 def ibm_chunks(start_date, end_date):
     '''
@@ -58,8 +69,10 @@ def get_ibm_weather(lat, lng, start_date, end_date):
             "apiKey": API_KEY
         }
         response = requests.get(url, params=params)
+        print(response)
         if response.status_code == 200:
             data = response.json()
+            print(data)
             all_data.append(pd.DataFrame(data))
         else:
             print(f"Failed to fetch data for {start} to {end}")
@@ -112,6 +125,8 @@ def build_daily(hourly):
     })
 
     daily.columns = ['_'.join(col) for col in daily.columns]
+    daily['windSpeed_mean']=daily['windSpeed_mean'].apply(lambda x: kmh_to_mps(x))
+    daily['windSpeed_max'] = daily['windSpeed_max'].apply(lambda x: kmh_to_mps(x))
     daily.reset_index(inplace=True)
 
     night_rh = hourly[hourly['night']].groupby('date_since_night').agg(
