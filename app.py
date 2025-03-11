@@ -166,7 +166,7 @@ def all_data_from_ibm_query(
         dict: Cleaned daily weather data as JSON serializable records.
     """
     try:
-        if token == API_KEY:
+        if token != None:
             weather_data = get_weather(latitude, longitude, forecasting_date)
             df = weather_data['daily']
             df_cleaned = df.replace([np.inf, -np.inf, np.nan], None).where(pd.notnull(df), None)
