@@ -1,4 +1,4 @@
-name: Run Unit Tests
+name: Run Tests
 
 on:
   push:
@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: '3.9'
 
@@ -25,4 +25,5 @@ jobs:
 
     - name: Run tests
       run: |
-        python -m unittest discover -s tests
+        # Make sure the root directory is in Python path
+        PYTHONPATH=$PYTHONPATH:$(pwd) python -m unittest test.forecasting_models_test test.process_ibm_risk_test
