@@ -6,7 +6,7 @@ import sys
 import os
 # Assuming the original code is in a module called disease_risk.py
 # Import the functions to be tested
-from agg_models_wrappers.forecasting_models import (
+from ag_models_wrappers.forecasting_models import (
     fahrenheit_to_celsius,
     rolling_mean,
     logistic_f,
