@@ -105,7 +105,7 @@ def calculate_gray_leaf_spot_risk_function(minAT21, minDP30):
     return pd.Series({"gls_risk": prob, "gls_risk_class": risk_class})
 
 
-def calculate_non_irrigated_risk(maxAT30MA, maxWS30MA):
+def calculate_non_irrigated_risk(maxAT30MA, maxRH30MA, maxWS30MA):
     '''
 
     Args:
@@ -115,9 +115,15 @@ def calculate_non_irrigated_risk(maxAT30MA, maxWS30MA):
     Returns:
 
     '''
-    logit_nirr = (-0.47 * maxAT30MA) - (1.01 * maxWS30MA) + 16.65
-    prob = logistic_f(logit_nirr)
+    #logit_nirr = (-0.47 * maxAT30MA) - (1.01 * maxWS30MA) + 16.65
+    logit_nirr1 = -0.47 * (maxAT30MA) -1.01 * (maxWS30MA) + 16.65
+    logit_nirr2 = -0.68 * (maxAT30MA) + 17.19
+    logit_nirr3 = -0.56 * (maxAT30MA) + 0.10 * (maxRH30MA)-0.75 * (maxWS30MA) + 8.20
+    prob1 = logistic_f(logit_nirr1)
+    prob2= logistic_f(logit_nirr2)
+    prob3 = logistic_f(logit_nirr3)
 
+    prob=(prob1+prob2+prob3)/3
     risk_class = 'Inactive'
 
     if maxAT30MA<10:
@@ -182,6 +188,8 @@ def calculate_frogeye_leaf_spot_function(maxAT30, rh80tot30):
     '''
     logit_fe = -5.92485 + (0.1220 * maxAT30) + (0.1732 * rh80tot30)
     prob_logit_fe = logistic_f(logit_fe)
+
+
 
     risk_class = "No class"
     if prob_logit_fe < 0.5:
