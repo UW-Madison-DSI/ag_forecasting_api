@@ -4,8 +4,7 @@ import numpy as np
 from unittest.mock import patch
 import sys
 import os
-# Assuming the original code is in a module called disease_risk.py
-# Import the functions to be tested
+
 from ag_models_wrappers.forecasting_models import (
     fahrenheit_to_celsius,
     rolling_mean,
