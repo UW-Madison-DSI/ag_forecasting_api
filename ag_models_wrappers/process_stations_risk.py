@@ -272,6 +272,7 @@ def compute_risks(df_chunk):
         lambda row: pd.Series(
             calculate_non_irrigated_risk(
                 row['air_temp_max_c_30d_ma'],
+                row['rh_max_30d_ma'],
                 row['max_ws_30d_ma']
             )
         ),
