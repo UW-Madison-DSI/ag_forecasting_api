@@ -66,7 +66,7 @@ def calculate_tarspot_risk_function(meanAT30d, maxRH30d, rh90_night_tot14d):
     probabilities = [logistic_f(logit_LR4), logistic_f(logit_LR6)]
     ensemble_prob = np.mean(probabilities)
 
-    risk_class = 'Inactive'
+    print('--------',meanAT30d)
     if meanAT30d<10:
         risk_class='Inactive'
     else:
@@ -124,7 +124,6 @@ def calculate_non_irrigated_risk(maxAT30MA, maxRH30MA, maxWS30MA):
     prob3 = logistic_f(logit_nirr3)
 
     prob=(prob1+prob2+prob3)/3
-    risk_class = 'Inactive'
 
     if maxAT30MA<10:
         risk_class='Inactive'
@@ -139,41 +138,59 @@ def calculate_non_irrigated_risk(maxAT30MA, maxRH30MA, maxWS30MA):
     return pd.Series({"whitemold_nirr_risk": prob, "whitemold_nirr_risk_class": risk_class})
 
 
-def calculate_irrigated_risk(maxAT30MA, maxRH30MA):
-    '''
 
-    Args:
-        maxAT30MA: maximum air temp Celsius, 30 days moving average
-        maxRH30MA: maximum relative humidity pct, 30 days moving average
+def calculate_irrigated_risk(maxAT30MA, maxRH30MA):
+    """
+    Calculate risk probabilities and classes for whitemold exposure.
+
+    Parameters:
+    maxAT30MA (float): Maximum temperature measure over 30 minutes.
+    maxRH30MA (float): Maximum relative humidity measure over 30 minutes.
 
     Returns:
-
-    '''
+    pd.Series: A pandas Series containing:
+    - whitemold_irr_30in_risk: Probability risk based on the 30 multiplier.
+    - whitemold_irr_15in_risk: Probability risk based on the 15 multiplier.
+    - whitemold_irr_15in_class: Risk classification for the 15 model.
+    - whitemold_irr_30in_class: Risk classification for the 30 model.
+    """
+    # Calculate the logit for the 30 multiplier case
     logit_irr_30 = (-2.38 * 1) + (0.65 * maxAT30MA) + (0.38 * maxRH30MA) - 52.65
     prob_logit_irr_30 = logistic_f(logit_irr_30)
 
+    # Calculate the logit for the 15 multiplier case
     logit_irr_15 = (-2.38 * 0) + (0.65 * maxAT30MA) + (0.38 * maxRH30MA) - 52.65
     prob_logit_irr_15 = logistic_f(logit_irr_15)
 
-    risk_class = 'Inactive'
+    # Initialize risk classes
+    risk_class_15 = 'Inactive'
+    risk_class_30 = 'Inactive'
 
-    if maxAT30MA<10:
-        risk_class='Inactive'
-    else:
-
-        if prob_logit_irr_15<.05:
-            risk_class = '1.Low'
-        elif prob_logit_irr_15>.05:
-            risk_class = '3.High'
+    # Set risk classifications based on thresholds
+    if maxAT30MA >= 10:
+        # Classification for 15in model
+        if prob_logit_irr_15 < 0.05:
+            risk_class_15 = '1.Low'
+        elif prob_logit_irr_15 > 0.1:
+            risk_class_15 = '3.High'
         else:
-            risk_class = '2.Moderate'
+            risk_class_15 = '2.Moderate'
 
+        # Classification for 30in model
+        if prob_logit_irr_30 < 0.05:
+            risk_class_30 = '1.Low'
+        elif prob_logit_irr_30 > 0.1:
+            risk_class_30 = '3.High'
+        else:
+            risk_class_30 = '2.Moderate'
+
+    # Return the computed values as a pandas Series
     return pd.Series({
         "whitemold_irr_30in_risk": prob_logit_irr_30,
         "whitemold_irr_15in_risk": prob_logit_irr_15,
-        "whitemold_irr_class": risk_class
+        "whitemold_irr_15in_class": risk_class_15,
+        "whitemold_irr_30in_class": risk_class_30,
     })
-
 
 def calculate_frogeye_leaf_spot_function(maxAT30, rh80tot30):
     '''

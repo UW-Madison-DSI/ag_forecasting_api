@@ -67,6 +67,7 @@ async def api_call_wisconet_data_daily_async(session, station_id, input_date):
                 'max_ws': np.nan
             })
 
+            result_df = result_df.sort_values('o_collection_time')
             # Vectorized population of measures
             for measure_id, column_name in MEASURE_MAP.items():
                 result_df[column_name] = df['measures'].apply(
@@ -80,15 +81,15 @@ async def api_call_wisconet_data_daily_async(session, station_id, input_date):
                 result_df[['air_temp_max_f', 'air_temp_min_f']].mean(axis=1))
 
             # Calculate moving averages
-            result_df['air_temp_min_c_21d_ma'] = result_df['air_temp_min_c'].rolling(window=21, min_periods=1).mean()
-            result_df['air_temp_max_c_30d_ma'] = result_df['air_temp_max_c'].rolling(window=30, min_periods=1).mean()
-            result_df['air_temp_avg_c_30d_ma'] = result_df['air_temp_avg_c'].rolling(window=30, min_periods=1).mean()
-            result_df['rh_max_30d_ma'] = result_df['rh_max'].rolling(window=30, min_periods=1).mean()
-            result_df['max_ws_30d_ma'] = result_df['max_ws'].rolling(window=30, min_periods=1).mean()
-            result_df['dp_min_30d_c_ma'] = result_df['min_dp_c'].rolling(window=30, min_periods=1).mean()
+            result_df['air_temp_min_c_21d_ma'] = result_df['air_temp_min_c'].rolling(window=21, min_periods=21).mean()
+            result_df['air_temp_max_c_30d_ma'] = result_df['air_temp_max_c'].rolling(window=30, min_periods=30).mean()
+            result_df['air_temp_avg_c_30d_ma'] = result_df['air_temp_avg_c'].rolling(window=30, min_periods=30).mean()
+            result_df['rh_max_30d_ma'] = result_df['rh_max'].rolling(window=30, min_periods=30).mean()
+            result_df['max_ws_30d_ma'] = result_df['max_ws'].rolling(window=30, min_periods=30).mean()
+            result_df['dp_min_30d_c_ma'] = result_df['min_dp_c'].rolling(window=30, min_periods=30).mean()
             result_df['collection_time'] = pd.to_datetime(result_df['collection_time'])
             result_df['date'] = result_df['collection_time'].dt.strftime('%Y-%m-%d')
-
+            print(result_df[['o_collection_time','date','air_temp_max_c','air_temp_max_c_30d_ma','air_temp_avg_c','air_temp_avg_c_30d_ma']])
             return result_df
         else:
             print(f"Error fetching data for station {station_id}, status code {response.status}")
@@ -265,7 +266,8 @@ def compute_risks(df_chunk):
         ),
         axis=1
     )
-    df_chunk[['whitemold_irr_30in_risk', 'whitemold_irr_15in_risk', 'whitemold_irr_class']] = whitemold_irr_results
+
+    df_chunk[['whitemold_irr_30in_risk', 'whitemold_irr_15in_risk', 'whitemold_irr_15in_class', 'whitemold_irr_30in_class']] = whitemold_irr_results
 
     # For white mold non-irrigated risk
     whitemold_nirr_results = df_chunk.apply(
@@ -358,8 +360,9 @@ async def retrieve_tarspot_all_stations_async(input_date, input_station_id=None,
         'tarspot_risk', 'tarspot_risk_class',
         'gls_risk', 'gls_risk_class',
         'fe_risk', 'fe_risk_class',
-        'whitemold_irr_30in_risk','whitemold_irr_15in_risk','whitemold_irr_class',
-        'whitemold_nirr_risk','whitemold_nirr_risk_class'
+        'whitemold_nirr_risk','whitemold_nirr_risk_class',
+        'whitemold_irr_30in_risk', 'whitemold_irr_15in_risk',
+        'whitemold_irr_15in_class', 'whitemold_irr_30in_class'
     ]
 
     print('input_date --->>>>>', input_date)
