@@ -9,12 +9,12 @@ from typing import List, Dict, Any
 from pydantic import BaseModel
 import numpy as np
 import asyncio
-
+import time
 from pywisconet.data import *
 from pywisconet.process import *
 
-from ag_models_wrappers.process_stations_risk import *
 from ag_models_wrappers.process_ibm_risk import *
+from ag_models_wrappers.process_wisconet import *
 
 app = FastAPI()
 
@@ -63,7 +63,7 @@ def bulk_measures_query(
     """
     cols = ['collection_time', 'collection_time_ct', 'hour_ct',
             'value', 'id', 'collection_frequency',
-            'final_units', 'measure_type','qualifier', #'source_field',
+            'final_units', 'measure_type','qualifier', 'source_field',
             'standard_name', 'units_abbrev']
 
     if measurements is not None:
@@ -102,7 +102,7 @@ def bulk_measures_query(
                 this_station_fields,
                 criteria=[MeasureType.WIND_SPEED, CollectionFrequency[frequency], Units.METERSPERSECOND]
             )
-
+        print('filtered_field_standard_names ', filtered_field_standard_names)
         # Fetch data for the date range
         bulk_measure_response = bulk_measures(
             station_id,
@@ -110,12 +110,12 @@ def bulk_measures_query(
             end_date,
             filtered_field_standard_names
         )
-
+        print('Bulk measure response: ', bulk_measure_response)
         df = bulk_measures_to_df(bulk_measure_response)
         df['collection_time_utc'] = pd.to_datetime(df['collection_time']).dt.tz_localize('UTC')
         df['collection_time_ct'] = df['collection_time_utc'].dt.tz_convert('US/Central')
         df['hour_ct'] = df['collection_time_ct'].dt.hour
-
+        print(df[cols].to_dict(orient="records"))
         return df[cols].to_dict(orient="records")
 
 
@@ -166,7 +166,7 @@ def all_data_from_ibm_query(
         dict: Cleaned daily weather data as JSON serializable records.
     """
     try:
-        if token != None:
+        if token!='':
             weather_data = get_weather(latitude, longitude, forecasting_date)
             df = weather_data['daily']
             df_cleaned = df.replace([np.inf, -np.inf, np.nan], None).where(pd.notnull(df), None)
@@ -197,11 +197,14 @@ def all_data_from_wisconet_query(
         dict: Cleaned weather data as JSON serializable records.
     """
     try:
+        start_time = time.time()
         #df = retrieve_tarspot_all_stations_optimized(input_date=forecasting_date, input_station_id=station_id, days=risk_days)
         df = main(input_date=forecasting_date, input_station_id=station_id, days=risk_days)
         print("----------------------------")
         print(df[['station_id','forecasting_date','fe_risk']])
         df_cleaned = df.replace([np.inf, -np.inf, np.nan], None).where(pd.notnull(df), None)
+        elapsed_time = time.time() - start_time  # Calculate elapsed time
+        print(f"Execution time: {elapsed_time} seconds")
         return df_cleaned.to_dict(orient="records")
     except ValueError as e:
         raise HTTPException(status_code=400, detail=f"Invalid input: {e}")

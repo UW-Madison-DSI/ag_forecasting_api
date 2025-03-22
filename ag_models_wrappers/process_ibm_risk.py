@@ -55,30 +55,31 @@ def get_ibm_weather(lat, lng, start_date, end_date):
     Returns:
 
     '''
-    chunks = ibm_chunks(start_date, end_date)
-    all_data = []
+    try:
+        chunks = ibm_chunks(start_date, end_date)
+        all_data = []
 
-    for start, end in chunks:
-        url = "https://api.weather.com/v3/wx/hod/r1/direct"
-        params = {
-            "format": "json",
-            "geocode": f"{lat},{lng}",
-            "startDateTime": start,
-            "endDateTime": end,
-            "units": "m",
-            "apiKey": API_KEY
-        }
-        response = requests.get(url, params=params)
-        print(response)
-        if response.status_code == 200:
-            data = response.json()
-            print(data)
-            all_data.append(pd.DataFrame(data))
-        else:
-            print(f"Failed to fetch data for {start} to {end}")
+        for start, end in chunks:
+            url = "https://api.weather.com/v3/wx/hod/r1/direct"
+            params = {
+                "format": "json",
+                "geocode": f"{lat},{lng}",
+                "startDateTime": start,
+                "endDateTime": end,
+                "units": "m",
+                "apiKey": API_KEY
+            }
+            response = requests.get(url, params=params)
+            if response.status_code == 200:
+                data = response.json()
+                all_data.append(pd.DataFrame(data))
+            else:
+                print(f"---- Failed to fetch data for {start} to {end}")
 
-    return pd.concat(all_data, ignore_index=True) if all_data else pd.DataFrame()
-
+        return pd.concat(all_data, ignore_index=True) if all_data else pd.DataFrame()
+    except Exception as e:
+        print('Exception ',e)
+        return None
 
 def build_hourly(data, tz='US/Central'):
     '''
@@ -177,7 +178,6 @@ def get_weather(lat, lng, end_date):
     '''
     try:
         tz = 'US/Central'
-        print(f"Fetching weather for point {lat}, {lng} ({tz})")
         # Convert the string to a datetime object
         date_obj = datetime.strptime(end_date, "%Y-%m-%d")
 
@@ -186,7 +186,6 @@ def get_weather(lat, lng, end_date):
 
         # Convert back to string if needed
         start_date = date_31_days_before.strftime("%Y-%m-%d")
-        print("End date ", end_date, " start date ", start_date)
         hourly_data = get_ibm_weather(lat, lng, str(start_date), str(date_obj))
         if hourly_data.empty:
             print("No data returned from API.")
@@ -194,19 +193,22 @@ def get_weather(lat, lng, end_date):
 
         hourly = build_hourly(hourly_data, "US/Central")
         daily = build_daily(hourly)
+
+
         daily_data = add_moving_averages(daily)
         daily_data['forecasting_date'] = daily_data['date'].apply(lambda x: x + timedelta(days=1))
+
 
         daily_data = daily_data.join(
             daily_data.apply(lambda row: calculate_tarspot_risk_function(
                 row['temperature_mean_30ma'], row['relativeHumidity_max_30ma'], row['hours_rh90_night_14ma']), axis=1)
         )
 
+
         daily_data = daily_data.join(
             daily_data.apply(lambda row: calculate_gray_leaf_spot_risk_function(
                 row['temperature_min_21ma'], row['temperatureDewPoint_min_30ma']), axis=1)
         )
-
         daily_data = daily_data.join(
             daily_data.apply(lambda row: calculate_frogeye_leaf_spot_function(
                 row['temperature_max_30ma'], row['hours_rh80_allday_30ma']), axis=1)
@@ -221,9 +223,6 @@ def get_weather(lat, lng, end_date):
             daily_data.apply(lambda row: calculate_non_irrigated_risk(
                 row['temperature_max_30ma'], row['relativeHumidity_max_30ma'], row['windSpeed_max_30ma']), axis=1)
         )
-
         return {"hourly": hourly, "daily": daily_data}
     except Exception as e:
-        print("Error --------", e)
-        print("The input was ", lat, lng, end_date)
         return {"hourly": None, "daily": None}

@@ -67,6 +67,7 @@ def calculate_tarspot_risk_function(meanAT30d, maxRH30d, rh90_night_tot14d):
     ensemble_prob = np.mean(probabilities)
 
     print('--------',meanAT30d)
+    risk_class = 'Inactive'
     if meanAT30d<10:
         risk_class='Inactive'
     else:

@@ -79,8 +79,20 @@ def bulk_measures(station_id: str, start_time: datetime, end_time: datetime, fie
     """
 
     # Parse the date string and assume the time is midnight in CT
-    start_date_utc = start_date_ct.astimezone(timezone('UTC'))
-    end_date_utc = end_date_ct.astimezone(timezone('UTC'))
+    start_time = datetime.strptime(start_time, "%Y-%m-%d")
+    end_time = datetime.strptime(end_time, "%Y-%m-%d")
+
+    # Since this datetime doesn't have timezone info (it's "naive"),
+    # we need to first localize it to a specific timezone before converting to UTC
+    # For example, if your time is in Eastern Time:
+    local_tz = timezone('US/Eastern')  # Use your actual local timezone
+    start_time_local = local_tz.localize(start_time)
+    end_time_local = local_tz.localize(end_time)
+
+    # Now we can convert to UTC
+    start_date_utc = start_time_local.astimezone(timezone('UTC'))
+    end_date_utc = end_time_local.astimezone(timezone('UTC'))
+
     print("start time ", start_date_utc, " end time ", end_date_utc)
 
     start_time_epoch = int(start_date_utc.timestamp())
@@ -97,6 +109,8 @@ def bulk_measures(station_id: str, start_time: datetime, end_time: datetime, fie
     with httpx.Client(base_url=BASE_URL, timeout=timeout) as client:
         response = client.get(route, params=params)
         response.raise_for_status()
+
+    print("response ", BulkMeasures(**response.json()))
     return BulkMeasures(**response.json())
 
 
