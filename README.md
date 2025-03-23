@@ -1,10 +1,12 @@
 # Open Source Agricultural Forecasting and Advisory System API
 This open-source forecasting tool provides plant disease predictions both as an API and through a customizable dashboard.
 [API](https://connect.doit.wisc.edu/pywisconet_wrapper/docs#/default/all_data_from_wisconet_query_ag_models_wrappers_wisconet_get)
+[Dashboard](https://connect.doit.wisc.edu/ag_forecasting/)
+
 ## Acknowledgements:
 This is an initiative of the Open source Program Office at the University of Madison-Wisconsin.
 Visit our Dashboard:
-- [Link](https://connect.doit.wisc.edu/tarspot_forecasting_app/)
+- [Link](https://connect.doit.wisc.edu/ag_forecasting/)
 - [GitHub Repo](https://github.com/UW-Madison-DSI/corn_disease_forecast_api.git)
 
 ## ag_models_wrappers
