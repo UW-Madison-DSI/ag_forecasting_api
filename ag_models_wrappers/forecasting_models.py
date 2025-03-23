@@ -70,6 +70,7 @@ def calculate_tarspot_risk_function(meanAT30d, maxRH30d, rh90_night_tot14d):
     risk_class = 'Inactive'
     if meanAT30d<10:
         risk_class='Inactive'
+        ensemble_prob = -1
     else:
         if ensemble_prob < 0.2:
             risk_class = "1.Low"
@@ -93,14 +94,18 @@ def calculate_gray_leaf_spot_risk_function(minAT21, minDP30):
     Implicit rules: Growth stage within V10 and R3 and Not irrigation total needed
     '''
     prob = logistic_f(-2.9467 - (0.03729 * minAT21) + (0.6534 * minDP30))
+    risk_class = 'Inactive'
 
-    risk_class = "No class"
-    if prob < 0.2:
-        risk_class = "1.Low"
-    elif prob > 0.6:
-        risk_class = "3.High"
-    elif prob >= .2 or prob <= .6:
-        risk_class = "2.Moderate"
+    if minAT21 < 5:
+        risk_class = 'Inactive'
+        prob = -1
+    else:
+        if prob < 0.2:
+            risk_class = "1.Low"
+        elif prob > 0.6:
+            risk_class = "3.High"
+        elif prob >= .2 or prob <= .6:
+            risk_class = "2.Moderate"
 
 
     return pd.Series({"gls_risk": prob, "gls_risk_class": risk_class})
@@ -128,6 +133,7 @@ def calculate_non_irrigated_risk(maxAT30MA, maxRH30MA, maxWS30MA):
 
     if maxAT30MA<10:
         risk_class='Inactive'
+        prob = -1
     else:
         if prob<.2:
             risk_class = '1.Low'
@@ -167,8 +173,12 @@ def calculate_irrigated_risk(maxAT30MA, maxRH30MA):
     risk_class_15 = 'Inactive'
     risk_class_30 = 'Inactive'
 
-    # Set risk classifications based on thresholds
-    if maxAT30MA >= 10:
+    if maxAT30MA < 10:
+        risk_class = 'Inactive'
+        prob_logit_irr_30 = -1
+        prob_logit_irr_15 = -1
+    else:
+        # Set risk classifications based on thresholds
         # Classification for 15in model
         if prob_logit_irr_15 < 0.05:
             risk_class_15 = '1.Low'
@@ -206,15 +216,16 @@ def calculate_frogeye_leaf_spot_function(maxAT30, rh80tot30):
     '''
     logit_fe = -5.92485 + (0.1220 * maxAT30) + (0.1732 * rh80tot30)
     prob_logit_fe = logistic_f(logit_fe)
-
-
-
-    risk_class = "No class"
-    if prob_logit_fe < 0.5:
-        risk_class = "1.Low"
-    elif prob_logit_fe > 0.6:
-        risk_class = "3.High"
-    elif prob_logit_fe>=.5 or prob_logit_fe<=.6:
-        risk_class = "2.Moderate"
+    risk_class = 'Inactive'
+    if maxAT30 < 10:
+        risk_class = 'Inactive'
+        prob_logit_fe = -1
+    else:
+        if prob_logit_fe < 0.5:
+            risk_class = "1.Low"
+        elif prob_logit_fe > 0.6:
+            risk_class = "3.High"
+        elif prob_logit_fe>=.5 or prob_logit_fe<=.6:
+            risk_class = "2.Moderate"
 
     return pd.Series({"fe_risk": prob_logit_fe, "fe_risk_class": risk_class})
