@@ -3,9 +3,10 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 from pytz import timezone
-
-# Set up your IBM API key
 import os
+
+from datetime import datetime, timedelta, time
+
 from ag_models_wrappers.forecasting_models import (
     rolling_mean,
     calculate_tarspot_risk_function,
@@ -14,8 +15,6 @@ from ag_models_wrappers.forecasting_models import (
     calculate_irrigated_risk,
     calculate_non_irrigated_risk
 )
-from datetime import datetime, timedelta, time
-
 
 
 URL_saascore = os.getenv("URL_saascore")
@@ -23,9 +22,6 @@ URL_saascore = os.getenv("URL_saascore")
 def kmh_to_mps(speed_kmh):
     """Convert speed from km/h to m/s."""
     return speed_kmh / 3.6
-
-
-
 
 def generate_chunks(start_date, end_date):
     chunks = []
