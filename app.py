@@ -10,10 +10,12 @@ from pydantic import BaseModel
 import numpy as np
 import asyncio
 import time
+import os
+
 from pywisconet.data import *
 from pywisconet.process import *
 
-from ag_models_wrappers.process_ibm_risk import *
+from ag_models_wrappers.process_ibm_risk_v2 import *
 from ag_models_wrappers.process_wisconet import *
 
 app = FastAPI()
@@ -145,10 +147,12 @@ def stations_query(
 # Endpoint for querying data from IBM
 @app.get("/ag_models_wrappers/ibm")
 def all_data_from_ibm_query(
-    forecasting_date: str,  # Passed as part of the URL path
-    latitude: float = Query(..., description="Latitude of the location"),
-    longitude: float = Query(..., description="Longitude of the location"),
-    token: str = Query(..., description="API token")
+        forecasting_date: str,  # Passed as part of the URL path
+        latitude: float = Query(..., description="Latitude of the location"),
+        longitude: float = Query(..., description="Longitude of the location"),
+        API_KEY: str = Query(..., description="api key"),
+        TENANT_ID: str = Query(..., description="Tenant id"),
+        ORG_ID: str = Query(..., description="organization id")
 ):
     """
     Query weather data using the IBM Weather API.
@@ -162,10 +166,20 @@ def all_data_from_ibm_query(
         dict: Cleaned daily weather data as JSON serializable records.
     """
     try:
-        weather_data = get_weather(latitude, longitude, forecasting_date)
-        df = weather_data['daily']
-        df_cleaned = df.replace([np.inf, -np.inf, np.nan], None).where(pd.notnull(df), None)
-        return df_cleaned.to_dict(orient="records")
+        # Check if provided credentials match environment variables
+        if (API_KEY == os.getenv("IBM_API_KEY") and
+                TENANT_ID == os.getenv("TENANT_ID") and
+                ORG_ID == os.getenv("ORG_ID")):
+
+            # Assuming get_weather is a defined function that fetches the data
+            weather_data = get_weather(latitude, longitude, forecasting_date,
+                                       ORG_ID, TENANT_ID, API_KEY)
+            df = weather_data['daily']
+            # Replace infinities and NaN values with None
+            df_cleaned = df.replace([np.inf, -np.inf, np.nan], None).where(pd.notnull(df), None)
+            return df_cleaned.to_dict(orient="records")
+        else:
+            return None
     except ValueError as e:
         raise HTTPException(status_code=400, detail=f"Invalid input: {e}")
     except Exception as e:

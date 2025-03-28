@@ -14,36 +14,69 @@ from ag_models_wrappers.forecasting_models import (
     calculate_irrigated_risk,
     calculate_non_irrigated_risk
 )
+from datetime import datetime, timedelta, time
 
 
-API_KEY = os.getenv("API_KEY")
+
+URL_saascore = os.getenv("URL_saascore")
 
 def kmh_to_mps(speed_kmh):
     """Convert speed from km/h to m/s."""
     return speed_kmh / 3.6
 
-def ibm_chunks(start_date, end_date):
-    '''
 
-    Args:
-        start_date:
-        end_date:
 
-    Returns:
 
-    '''
+def generate_chunks(start_date, end_date):
     chunks = []
+
+    # Parse the input dates using fromisoformat (works for date-only strings)
     start = datetime.fromisoformat(start_date)
     end = datetime.fromisoformat(end_date)
 
+    # Ensure the time is set to midnight (00:00)
+    start = datetime.combine(start.date(), time(0, 1))
+    end = datetime.combine(end.date(), time(0, 1))
+
     while start < end:
         next_start = start + timedelta(hours=999)
-        chunks.append((start.isoformat(), min(next_start, end).isoformat()))
+        chunk_end = min(next_start, end)
+        # Format dates with only the hour using strftime
+        chunks.append((start.strftime("%Y-%m-%dT%H"), chunk_end.strftime("%Y-%m-%dT%H")))
         start = next_start
+
     return chunks
 
+def retrieve_saascore_api_key(org_id, tenant_id, current_api_key):
+  """
+  Makes a GET request to the IBM SaaSCore authentication retrieve API key endpoint.
 
-def get_ibm_weather(lat, lng, start_date, end_date):
+  Args:
+    org_id: Your EIS organization ID.
+    tenant_id: Your EIS tenant ID.
+    current_api_key: Your existing EIS API key.
+
+  Returns:
+    The JSON response from the API if the request is successful (status code 200),
+    otherwise None. You should check the response for the retrieved API key.
+    Prints an error message if the request fails.
+  """
+  url = f'{URL_saascore}/api-key?orgId={org_id}'
+  headers = {
+      'x-ibm-client-Id': f'saascore-{tenant_id}',
+      'x-api-key': current_api_key
+  }
+
+  try:
+      response = requests.get(url, headers=headers)
+      response.raise_for_status()  # Raise an exception for bad status codes
+      return response.text
+  except requests.exceptions.RequestException as e:
+      print(f"Error during API call: {e}")
+      return None
+
+def get_ibm_weather(lat, lng, start_date, end_date,
+                    ORG_ID, TENANT_ID, API_KEY):
     '''
 
     Args:
@@ -55,21 +88,27 @@ def get_ibm_weather(lat, lng, start_date, end_date):
     Returns:
 
     '''
+    #org_id, tenant_id, current_api_key
+    jwt = retrieve_saascore_api_key(ORG_ID, TENANT_ID, API_KEY)
+
+    url = 'https://api.ibm.com/geospatial/run/v3/wx/hod/r1/direct'
+    headers = {
+        'x-ibm-client-id': f'geospatial-{TENANT_ID}',
+        'Authorization': f'Bearer {jwt}'
+    }
     try:
-        chunks = ibm_chunks(start_date, end_date)
+        chunks = generate_chunks(start_date, end_date)
         all_data = []
 
         for start, end in chunks:
-            url = "https://api.weather.com/v3/wx/hod/r1/direct"
             params = {
                 "format": "json",
                 "geocode": f"{lat},{lng}",
                 "startDateTime": start,
                 "endDateTime": end,
-                "units": "m",
-                "apiKey": API_KEY
+                "units": "m"
             }
-            response = requests.get(url, params=params)
+            response = requests.get(url, headers=headers, params=params)
             if response.status_code == 200:
                 data = response.json()
                 all_data.append(pd.DataFrame(data))
@@ -78,7 +117,7 @@ def get_ibm_weather(lat, lng, start_date, end_date):
 
         return pd.concat(all_data, ignore_index=True) if all_data else pd.DataFrame()
     except Exception as e:
-        print('Exception ',e)
+        print('-------- Exception ',e)
         return None
 
 def build_hourly(data, tz='US/Central'):
@@ -165,13 +204,16 @@ def add_moving_averages(data):
     return data
 
 
-def get_weather(lat, lng, end_date):
+def get_weather(lat, lng, end_date, API_KEY, TENANT_ID, ORG_ID):
     '''
 
     Args:
         lat:
         lng:
         end_date:
+        API_KEY:
+        TENANT_ID:
+        ORG_ID:
 
     Returns:
 
@@ -186,7 +228,8 @@ def get_weather(lat, lng, end_date):
 
         # Convert back to string if needed
         start_date = date_31_days_before.strftime("%Y-%m-%d")
-        hourly_data = get_ibm_weather(lat, lng, str(start_date), str(date_obj))
+        hourly_data = get_ibm_weather(lat, lng, str(start_date), str(date_obj),
+                                      API_KEY, TENANT_ID, ORG_ID)
         if hourly_data.empty:
             print("No data returned from API.")
             return None
