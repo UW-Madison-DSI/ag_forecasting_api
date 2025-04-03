@@ -70,11 +70,50 @@ Query Parameters:
 - station_id: (Optional) Station ID for filtering the results.
 Usage Example:
 ```commandline
-GET /ag_models_wrappers/wisconet?forecasting_date=2024-07-01&risk_days=1&station_id=12345
+GET /ag_models_wrappers/wisconet?forecasting_date=2024-07-01&risk_days=1&station_id=ALTN
 
 ```
 
 **See more examples in the** notebooks/examples.ipynb
+
+
+### Active Wisconet Stations
+Endpoint: /wisconet/active_stations/
+Method: GET
+Query Parameters:
+
+min_days_active: Minimum number of days a station should have been active.
+start_date: Start date in YYYY-MM-DD format.
+Usage Example:
+```commandline
+GET /wisconet/active_stations/?min_days_active=10&start_date=2024-07-01
+
+```
+
+### Get Wisconet Station Fields
+Endpoint: /station_fields/{station_id}
+Method: GET
+Description: Retrieves the fields associated with the specified station.
+Usage Example:
+```commandline
+GET /station_fields/ALTN
+
+```
+
+### Bulk Wisconet Weather Measurements
+Endpoint: /bulk_measures/{station_id}
+Method: GET
+Query Parameters:
+
+- start_date: Start date in YYYY-MM-DD format (e.g., 2024-07-01) assumed to be in Central Time (CT).
+- end_date: End date in YYYY-MM-DD format (e.g., 2024-07-02) assumed to be in CT.
+- measurements: Measurement types (e.g., AIRTEMP, DEW_POINT, WIND_SPEED, RELATIVE_HUMIDITY, or ALL for the last four).
+- frequency: Frequency of measurements (e.g., MIN60, MIN5, DAILY).
+Usage Example:
+```commandline
+GET /bulk_measures/ALTN?start_date=2024-07-01&end_date=2024-07-02&measurements=AIRTEMP&frequency=MIN60
+
+```
 
 ### Ag Forecasting for a given forecasting date and location (lat, lon) sourced from IBM Weather Data
 Endpoint: /ag_models_wrappers/ibm
@@ -91,43 +130,6 @@ Path Parameter:
 Usage Example:
 ```commandline
 GET /ag_models_wrappers/ibm?forecasting_date=2024-07-01&latitude=41.8781&longitude=-87.6298&API_KEY=your_key&TENANT_ID=your_tenant&ORG_ID=your_org
-
-```
-
-### Get Station Fields
-Endpoint: /station_fields/{station_id}
-Method: GET
-Description: Retrieves the fields associated with the specified station.
-Usage Example:
-```commandline
-GET /station_fields/12345
-
-```
-
-### Bulk Measurements
-Endpoint: /bulk_measures/{station_id}
-Method: GET
-Query Parameters:
-
-- start_date: Start date in YYYY-MM-DD format (e.g., 2024-07-01) assumed to be in Central Time (CT).
-- end_date: End date in YYYY-MM-DD format (e.g., 2024-07-02) assumed to be in CT.
-- measurements: Measurement types (e.g., AIRTEMP, DEW_POINT, WIND_SPEED, RELATIVE_HUMIDITY, or ALL for the last four).
-- frequency: Frequency of measurements (e.g., MIN60, MIN5, DAILY).
-Usage Example:
-```commandline
-GET /bulk_measures/12345?start_date=2024-07-01&end_date=2024-07-02&measurements=AIRTEMP&frequency=MIN60
-
-```
-### Active Stations
-Endpoint: /wisconet/active_stations/
-Method: GET
-Query Parameters:
-
-min_days_active: Minimum number of days a station should have been active.
-start_date: Start date in YYYY-MM-DD format.
-Usage Example:
-```commandline
-GET /wisconet/active_stations/?min_days_active=10&start_date=2024-07-01
 
 ```
 
