@@ -325,13 +325,16 @@ async def process_stations_in_batches(session, station_ids, input_date, days):
 
 
 def compute_risks(df_chunk):
-    """Compute risk metrics for a chunk of data"""
+    """Compute risk metrics for a chunk of data.
+    If air_temp_avg_c_30d_ma < 15 then all risk models are set to -1 and the risk class to 'Inactive'
+    """
     df_chunk = df_chunk.copy()
 
-    # Apply risk calculations using vectorized operations where possible
-    # For tarspot risk
+    # Tarspot risk calculation with condition
     tarspot_results = df_chunk.apply(
-        lambda row: pd.Series(
+        lambda row: pd.Series([-1, 'Inactive'])
+        if row['air_temp_avg_c_30d_ma'] < 15
+        else pd.Series(
             calculate_tarspot_risk_function(
                 row['air_temp_avg_c_30d_ma'],
                 row['rh_max_30d_ma'],
@@ -342,9 +345,11 @@ def compute_risks(df_chunk):
     )
     df_chunk[['tarspot_risk', 'tarspot_risk_class']] = tarspot_results
 
-    # For gray leaf spot risk
+    # Gray leaf spot risk calculation with condition
     gls_results = df_chunk.apply(
-        lambda row: pd.Series(
+        lambda row: pd.Series([-1, 'Inactive'])
+        if row['air_temp_avg_c_30d_ma'] < 15
+        else pd.Series(
             calculate_gray_leaf_spot_risk_function(
                 row['air_temp_min_c_21d_ma'],
                 row['dp_min_30d_c_ma']
@@ -354,9 +359,11 @@ def compute_risks(df_chunk):
     )
     df_chunk[['gls_risk', 'gls_risk_class']] = gls_results
 
-    # For frogeye leaf spot risk
+    # Frogeye leaf spot risk calculation with condition
     fe_results = df_chunk.apply(
-        lambda row: pd.Series(
+        lambda row: pd.Series([-1, 'Inactive'])
+        if row['air_temp_avg_c_30d_ma'] < 15
+        else pd.Series(
             calculate_frogeye_leaf_spot_function(
                 row['air_temp_max_c_30d_ma'],
                 row['rh_above_80_day_30d_ma']
@@ -366,9 +373,11 @@ def compute_risks(df_chunk):
     )
     df_chunk[['fe_risk', 'fe_risk_class']] = fe_results
 
-    # For white mold irrigated risk
+    # White mold irrigated risk calculation with condition
     whitemold_irr_results = df_chunk.apply(
-        lambda row: pd.Series(
+        lambda row: pd.Series([-1, -1, 'Inactive', 'Inactive'])
+        if row['air_temp_avg_c_30d_ma'] < 15
+        else pd.Series(
             calculate_irrigated_risk(
                 row['air_temp_max_c_30d_ma'],
                 row['rh_max_30d_ma']
@@ -376,13 +385,14 @@ def compute_risks(df_chunk):
         ),
         axis=1
     )
+    df_chunk[['whitemold_irr_30in_risk', 'whitemold_irr_15in_risk',
+              'whitemold_irr_15in_class', 'whitemold_irr_30in_class']] = whitemold_irr_results
 
-    df_chunk[['whitemold_irr_30in_risk', 'whitemold_irr_15in_risk', 'whitemold_irr_15in_class',
-              'whitemold_irr_30in_class']] = whitemold_irr_results
-
-    # For white mold non-irrigated risk
+    # White mold non-irrigated risk calculation with condition
     whitemold_nirr_results = df_chunk.apply(
-        lambda row: pd.Series(
+        lambda row: pd.Series([-1, 'Inactive'])
+        if row['air_temp_avg_c_30d_ma'] < 15
+        else pd.Series(
             calculate_non_irrigated_risk(
                 row['air_temp_max_c_30d_ma'],
                 row['rh_max_30d_ma'],
@@ -394,6 +404,7 @@ def compute_risks(df_chunk):
     df_chunk[['whitemold_nirr_risk', 'whitemold_nirr_risk_class']] = whitemold_nirr_results
 
     return df_chunk
+
 
 
 # Improved function to split data into roughly equal chunks

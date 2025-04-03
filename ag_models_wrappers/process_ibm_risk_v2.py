@@ -264,4 +264,5 @@ def get_weather(lat, lng, end_date, API_KEY, TENANT_ID, ORG_ID):
         )
         return {"hourly": hourly, "daily": daily_data}
     except Exception as e:
+        print("Exception at the IBM risk compute: >>>>>> ",e," <<<<<<")
         return {"hourly": None, "daily": None}
