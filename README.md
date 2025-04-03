@@ -60,6 +60,40 @@ The API will be available at http://127.0.0.1:8000.
 
 ## Endpoints
 
+### Ag Forecasting for a given (or all) Available Wisconet Stations Weather Data for a given forecasting date
+Endpoint: /ag_models_wrappers/wisconet
+Method: GET
+Query Parameters:
+
+- forecasting_date: Date for the forecast in YYYY-MM-DD format.
+- risk_days: (Optional) Number of risk days (default is 1).
+- station_id: (Optional) Station ID for filtering the results.
+Usage Example:
+```commandline
+GET /ag_models_wrappers/wisconet?forecasting_date=2024-07-01&risk_days=1&station_id=12345
+
+```
+
+**See more examples in the** notebooks/examples.ipynb
+
+### Ag Forecasting for a given forecasting date and location (lat, lon) sourced from IBM Weather Data
+Endpoint: /ag_models_wrappers/ibm
+Method: GET
+Path Parameter:
+
+- forecasting_date: Date for the forecast in YYYY-MM-DD format.
+- Query Parameters:
+- latitude: Latitude of the location.
+- longitude: Longitude of the location.
+- API_KEY: IBM API key.
+- TENANT_ID: Tenant ID.
+- ORG_ID: Organization ID.
+Usage Example:
+```commandline
+GET /ag_models_wrappers/ibm?forecasting_date=2024-07-01&latitude=41.8781&longitude=-87.6298&API_KEY=your_key&TENANT_ID=your_tenant&ORG_ID=your_org
+
+```
+
 ### Get Station Fields
 Endpoint: /station_fields/{station_id}
 Method: GET
@@ -96,40 +130,6 @@ Usage Example:
 GET /wisconet/active_stations/?min_days_active=10&start_date=2024-07-01
 
 ```
-
-### IBM Weather Data
-Endpoint: /ag_models_wrappers/ibm
-Method: GET
-Path Parameter:
-
-- forecasting_date: Date for the forecast in YYYY-MM-DD format.
-- Query Parameters:
-- latitude: Latitude of the location.
-- longitude: Longitude of the location.
-- API_KEY: IBM API key.
-- TENANT_ID: Tenant ID.
-- ORG_ID: Organization ID.
-Usage Example:
-```commandline
-GET /ag_models_wrappers/ibm?forecasting_date=2024-07-01&latitude=41.8781&longitude=-87.6298&API_KEY=your_key&TENANT_ID=your_tenant&ORG_ID=your_org
-
-```
-
-### Wisconet Weather Data
-Endpoint: /ag_models_wrappers/wisconet
-Method: GET
-Query Parameters:
-
-- forecasting_date: Date for the forecast in YYYY-MM-DD format.
-- risk_days: (Optional) Number of risk days (default is 1).
-- station_id: (Optional) Station ID for filtering the results.
-Usage Example:
-```commandline
-GET /ag_models_wrappers/wisconet?forecasting_date=2024-07-01&risk_days=1&station_id=12345
-
-```
-
-**See more examples in the** notebooks/examples.ipynb
 
 ## Root Endpoint
 Endpoint: /
