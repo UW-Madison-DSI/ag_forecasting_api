@@ -28,6 +28,10 @@ Table of Contents
 - IBM Weather Integration: Fetch and clean daily weather data from IBM Weather API.
 - Wisconet Weather Data: Access weather data aggregated daily from Wisconet.
 
+## Integration of the API into a dynamic dashboard to visualize the Ag forecasting
+Visit our API application through our interactive Dashboard:
+- [Link](https://connect.doit.wisc.edu/ag_forecasting/)
+- [GitHub Repo](https://github.com/UW-Madison-DSI/corn_disease_forecast_api.git)
 
 ## Agriculture models: ag_models_wrappers folder
 The ag_models_wrappers serve as the critical layer for providing crop model-based risk assessments tailored to weather data on specific locations eg Wisconet Stations or punctual locations in Wisconsin by IBM data. This component integrates various forecasting models to deliver localized risk predictions for plant diseases for a given forecasting date, enabling informed decision-making in agricultural management.
@@ -168,9 +172,6 @@ This is an initiative of the Open source Program Office at the University of Mad
 
 [API](https://connect.doit.wisc.edu/pywisconet_wrapper/docs#/default/all_data_from_wisconet_query_ag_models_wrappers_wisconet_get)
 
-Visit our API application through our interactive Dashboard:
-- [Link](https://connect.doit.wisc.edu/ag_forecasting/)
-- [GitHub Repo](https://github.com/UW-Madison-DSI/corn_disease_forecast_api.git)
 
 **Matainer**
 - Maria Oros, Data Scientist, Data Science Institute at UW-Madison
