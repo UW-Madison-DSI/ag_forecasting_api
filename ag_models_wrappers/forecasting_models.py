@@ -131,7 +131,7 @@ def calculate_non_irrigated_risk(maxAT30MA, maxRH30MA, maxWS30MA):
 
     prob=(prob1+prob2+prob3)/3
 
-    if maxAT30MA<10:
+    if maxAT30MA<15:
         risk_class='Inactive'
         prob = -1
     else:
@@ -173,7 +173,7 @@ def calculate_irrigated_risk(maxAT30MA, maxRH30MA):
     risk_class_15 = 'Inactive'
     risk_class_30 = 'Inactive'
 
-    if maxAT30MA < 10:
+    if maxAT30MA < 15:
         risk_class = 'Inactive'
         prob_logit_irr_30 = -1
         prob_logit_irr_15 = -1
@@ -217,7 +217,7 @@ def calculate_frogeye_leaf_spot_function(maxAT30, rh80tot30):
     logit_fe = -5.92485 + (0.1220 * maxAT30) + (0.1732 * rh80tot30)
     prob_logit_fe = logistic_f(logit_fe)
     risk_class = 'Inactive'
-    if maxAT30 < 10:
+    if maxAT30 < 15:
         risk_class = 'Inactive'
         prob_logit_fe = -1
     else:
