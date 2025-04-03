@@ -1,25 +1,29 @@
 # Open Source Ag Forecasting API
 
 This API provides access to weather-related data using a FastAPI-based backend. The application integrates weather station data and forecasting from multiple sources, including IBM Weather and Wisconet. It also supports querying bulk measurements for stations over specified date ranges.
+[API](https://connect.doit.wisc.edu/pywisconet_wrapper/docs#/default/all_data_from_wisconet_query_ag_models_wrappers_wisconet_get)
 
 Table of Contents
 
-- Features
-- A use case of our API Integration: visualizing the Ag forecasting for Wisconsin
-- Agriculture models: ag_models_wrappers folder
-- Installation
-- Running the API
-- Ag Forecasting Endpoints
-  - IBM Weather Data
-  - Wisconet Weather Data
-- pywisconet Endpoints
-  - Get Station Fields
-  - Bulk Measurements
-  - Active Stations
-- Root Endpoint
-- WSGI Compatibility
-- Environment Variables
-- Notes
+- [Features](#features)
+- [A use case of our API Integration: visualizing the Ag forecasting for Wisconsin](#a-use-case-of-our-api-integration-visualizing-the-ag-forecasting-for-wisconsin)
+- [Agriculture models: ag_models_wrappers folder](#agriculture-models-ag_models_wrappers-folder)
+- [Installation](#installation)
+- [Running the API](#running-the-api)
+- [Ag Forecasting Endpoints](#ag-forecasting-endpoints)
+  - [IBM Weather Data](#ibm-weather-data)
+  - [Wisconet Weather Data](#wisconet-weather-data)
+- [pywisconet Endpoints](#pywisconet-endpoints)
+  - [Get Station Fields](#get-station-fields)
+  - [Bulk Measurements](#bulk-measurements)
+  - [Active Stations](#active-stations)
+- [Root Endpoint](#root-endpoint)
+- [WSGI Compatibility](#wsgi-compatibility)
+- [Environment Variables](#environment-variables)
+- [Plant Disease models](#plant-disease-models)
+- [License](#license)
+- [Acknowledgements](#acknowledgements)
+
 
 ## Features
 
@@ -168,11 +172,30 @@ GET /bulk_measures/ALTN?start_date=2024-07-01&end_date=2024-07-02&measurements=A
 
 ```
 
-## Acknowledgements:
-This is an initiative of the Open source Program Office at the University of Madison-Wisconsin.
+## Plant disease models
 
-[API](https://connect.doit.wisc.edu/pywisconet_wrapper/docs#/default/all_data_from_wisconet_query_ag_models_wrappers_wisconet_get)
+Selected field crops and vegetable disease model outputs are provided. These models are subject to change. The calculations used to generate each model prediction can be viewed in the source code.
 
+**Soybean Crop Disease** White mold (aka Sporecaster), probability of apothecial presence. More information: https://cropprotectionnetwork.org/news/smartphone-application-to-forecast-white-mold-in-soybean-now-available-to-growers
 
-**Matainer**
-- Maria Oros, Data Scientist, Data Science Institute at UW-Madison
+  - dry 
+  - irrigated 15-inch row spacing
+  - irrigated 30-inch row spacing
+  
+**Corn Crop Disease**
+
+- Frogeye Leaf Spot - More information: https://cropprotectionnetwork.org/encyclopedia/frogeye-leaf-spot-of-soybean
+- Gray Leaf Spot of corn - More information: https://cropprotectionnetwork.org/encyclopedia/gray-leaf-spot-of-corn
+- Tar Spot of corn (aka Tarspotter) - More information: https://cropprotectionnetwork.org/encyclopedia/tar-spot-of-corn
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+### Acknowledgements
+- This work is an Open-Source initiative from the [Open Source Program Office at the University of Madison Wisconsin](https://ospo.wisc.edu), aimed at fostering collaboration and innovation in open source forecasting tools.
+- The models presented are based on plant pathology research in the University of Madison Wisconsin, paper: [Nature Scientific Reports, 2023](https://www.nature.com/articles/s41598-023-44338-6)
+- This software was created by the [Data Science Institute](https://datascience.wisc.edu) at the [University of Wisconsin-Madison](https://www.wisc.edu)
+
+Mantainer: Maria Oros, maria.oros@wisc.edu
+
