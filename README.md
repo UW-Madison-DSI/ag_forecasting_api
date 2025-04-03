@@ -27,22 +27,16 @@ Table of Contents
 - IBM Weather Integration: Fetch and clean daily weather data from IBM Weather API.
 - Wisconet Weather Data: Access weather data aggregated daily from Wisconet.
 
-This open-source forecasting tool provides plant disease predictions both as an API and through a customizable dashboard.
-[API](https://connect.doit.wisc.edu/pywisconet_wrapper/docs#/default/all_data_from_wisconet_query_ag_models_wrappers_wisconet_get)
-[Dashboard](https://connect.doit.wisc.edu/ag_forecasting/)
 
-## Acknowledgements:
-This is an initiative of the Open source Program Office at the University of Madison-Wisconsin.
-Visit our Dashboard:
-- [Link](https://connect.doit.wisc.edu/ag_forecasting/)
-- [GitHub Repo](https://github.com/UW-Madison-DSI/corn_disease_forecast_api.git)
 
-## ag_models_wrappers
+## Agriculture models: ag_models_wrappers folder
 The ag_models_wrappers serve as the critical layer for providing crop model-based risk assessments tailored to weather data on specific locations eg Wisconet Stations or punctual locations in Wisconsin by IBM data. This component integrates various forecasting models to deliver localized risk predictions for plant diseases for a given forecasting date, enabling informed decision-making in agricultural management.
 - Wisconet API Wrapper: This REST API simplifies communication between the Wisconet API service and our dashboard. We developed an API that dynamically retrieves data from available weather stations, fetching daily and hourly variables necessary for the input of various disease models.
 - IBM API Wrapper: This REST API facilitates communication between the IBM paid service and our dashboard. Access to the IBM service is secured with an API key.
 Both APIs are open-source and can be integrated into other processes. Note that the IBM API requires an API key for access.
 See below the documentation.
+
+See an example on how to programatically use our API here https://github.com/UW-Madison-DSI/ag_forecasting_api/blob/main/materials/example_callapi.ipynb
 
 ## Installation
 
@@ -168,4 +162,12 @@ API Documentation: [API](https://connect.doit.wisc.edu/pywisconet_wrapper/docs)
 For more information on how to use our API, please visit the material section.
 
 
+## Acknowledgements:
+This is an initiative of the Open source Program Office at the University of Madison-Wisconsin.
+
+[API](https://connect.doit.wisc.edu/pywisconet_wrapper/docs#/default/all_data_from_wisconet_query_ag_models_wrappers_wisconet_get)
+
+Visit our API application through our interactive Dashboard:
+- [Link](https://connect.doit.wisc.edu/ag_forecasting/)
+- [GitHub Repo](https://github.com/UW-Madison-DSI/corn_disease_forecast_api.git)
 
