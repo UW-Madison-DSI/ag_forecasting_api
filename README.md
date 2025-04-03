@@ -1,4 +1,32 @@
-# Open Source Agricultural Forecasting and Advisory System API
+# Open Source Ag Forecasting API
+
+This API provides access to weather-related data using a FastAPI-based backend. The application integrates weather station data and forecasting from multiple sources, including IBM Weather and Wisconet. It also supports querying bulk measurements for stations over specified date ranges.
+
+Table of Contents
+
+- Features
+- Prerequisites
+- Installation
+- Running the API
+- Endpoints
+  - Get Station Fields
+  - Bulk Measurements
+  - Active Stations
+  - IBM Weather Data
+  - Wisconet Weather Data
+  - Root Endpoint
+- WSGI Compatibility
+- Environment Variables
+- Notes
+
+## Features
+
+- Station Fields Retrieval: Get details of a weather station by its ID.
+- Bulk Measurements: Retrieve weather measurements for a station within a specified date range and frequency.
+- Active Stations Query: List stations based on active days and a provided start date.
+- IBM Weather Integration: Fetch and clean daily weather data from IBM Weather API.
+- Wisconet Weather Data: Access weather data aggregated daily from Wisconet.
+
 This open-source forecasting tool provides plant disease predictions both as an API and through a customizable dashboard.
 [API](https://connect.doit.wisc.edu/pywisconet_wrapper/docs#/default/all_data_from_wisconet_query_ag_models_wrappers_wisconet_get)
 [Dashboard](https://connect.doit.wisc.edu/ag_forecasting/)
@@ -16,83 +44,128 @@ The ag_models_wrappers serve as the critical layer for providing crop model-base
 Both APIs are open-source and can be integrated into other processes. Note that the IBM API requires an API key for access.
 See below the documentation.
 
+## Installation
+
+```commandline
+git clone https://github.com/UW-Madison-DSI/ag_forecasting_api.git
+cd pywisconet
+
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+pip install -r requirements.txt
+
+```
+
+## Running the API
+```commandline
+uvicorn main:app --reload
+
+```
+The API will be available at http://127.0.0.1:8000.
+
+## Endpoints
+
+### Get Station Fields
+Endpoint: /station_fields/{station_id}
+Method: GET
+Description: Retrieves the fields associated with the specified station.
+Usage Example:
+```commandline
+GET /station_fields/12345
+
+```
+
+### Bulk Measurements
+Endpoint: /bulk_measures/{station_id}
+Method: GET
+Query Parameters:
+
+- start_date: Start date in YYYY-MM-DD format (e.g., 2024-07-01) assumed to be in Central Time (CT).
+- end_date: End date in YYYY-MM-DD format (e.g., 2024-07-02) assumed to be in CT.
+- measurements: Measurement types (e.g., AIRTEMP, DEW_POINT, WIND_SPEED, RELATIVE_HUMIDITY, or ALL for the last four).
+- frequency: Frequency of measurements (e.g., MIN60, MIN5, DAILY).
+Usage Example:
+```commandline
+GET /bulk_measures/12345?start_date=2024-07-01&end_date=2024-07-02&measurements=AIRTEMP&frequency=MIN60
+
+```
+### Active Stations
+Endpoint: /wisconet/active_stations/
+Method: GET
+Query Parameters:
+
+min_days_active: Minimum number of days a station should have been active.
+start_date: Start date in YYYY-MM-DD format.
+Usage Example:
+```commandline
+GET /wisconet/active_stations/?min_days_active=10&start_date=2024-07-01
+
+```
+
+### IBM Weather Data
+Endpoint: /ag_models_wrappers/ibm
+Method: GET
+Path Parameter:
+
+- forecasting_date: Date for the forecast in YYYY-MM-DD format.
+- Query Parameters:
+- latitude: Latitude of the location.
+- longitude: Longitude of the location.
+- API_KEY: IBM API key.
+- TENANT_ID: Tenant ID.
+- ORG_ID: Organization ID.
+Usage Example:
+```commandline
+GET /ag_models_wrappers/ibm?forecasting_date=2024-07-01&latitude=41.8781&longitude=-87.6298&API_KEY=your_key&TENANT_ID=your_tenant&ORG_ID=your_org
+
+```
+
+### Wisconet Weather Data
+Endpoint: /ag_models_wrappers/wisconet
+Method: GET
+Query Parameters:
+
+- forecasting_date: Date for the forecast in YYYY-MM-DD format.
+- risk_days: (Optional) Number of risk days (default is 1).
+- station_id: (Optional) Station ID for filtering the results.
+Usage Example:
+```commandline
+GET /ag_models_wrappers/wisconet?forecasting_date=2024-07-01&risk_days=1&station_id=12345
+
+```
+
+**See more examples in the** notebooks/examples.ipynb
+
+## Root Endpoint
+Endpoint: /
+Method: GET
+Description: A simple welcome message to indicate that the API is up and running.
+Usage Example:
+```commandline
+GET /
+```
+
+## WSGI Compatibility
+
+This API includes a WSGI application wrapped with Starlette’s WSGIMiddleware for compatibility with WSGI servers. The create_wsgi_app function creates a WSGI application that delegates HTTP requests to the FastAPI app. This can be useful when integrating with legacy systems or deploying in environments that require a WSGI interface.
+
+### Environment Variables
+
+For the IBM Weather data endpoint to work properly, ensure that you set the following environment variables in your deployment environment:
+
+- IBM_API_KEY
+- TENANT_ID
+- ORG_ID
+These credentials are validated against the values provided in the query parameters.
+
 ## pywisconet
-This API wrapper represents an interface for interacting with Wisconet v1 data. The intended objective is to provide a streamlined method for accessing weather and environmental data from Wisconet's network of stations, enabling users to integrate this data into their own applications and forecasting models for agricultural and environmental analysis.
+We provide also an API wrapper that represents an interface for interacting with Wisconet v1 data. The intended objective is to provide a streamlined method for accessing weather and environmental data from Wisconet's network of stations, enabling users to integrate this data into their own applications and forecasting models for agricultural and environmental analysis.
 
 
 API Documentation: [API](https://connect.doit.wisc.edu/pywisconet_wrapper/docs)
 
 For more information on how to use our API, please visit the material section.
 
-## Installation and Setup
-To set up and run the API locally, follow these steps:
-
-```
-git clone git@github.com:UW-Madison-DSI/pywisconet.git
-cd pywisconet
-python -m venv venv
-source venv/bin/activate  # On Windows use: venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn app:app --reload
-```
-
-The models presented herein constitute the foundation of our Open Source Agricultural Forecasting and Advisory System, which underpins the [APP](https://github.com/UW-Madison-DSI/corn_disease_forecast_api.git) 
 
 
-# pywisconet
-
-
-## usage
-```python
-# define date range to collect bulk measures data
-start_date = datetime(2024,7,1, tzinfo=ZoneInfo("UTC"))
-end_date = datetime(2024,7,2, tzinfo=ZoneInfo("UTC"))
-
-# collect station details from wisconet API
-stations = all_stations()
-this_station = stations[2]
-this_station_fields = station_fields(this_station.station_id)
-
-# select desired measure standard names from available fields
-filtered_field_standard_names = filter_fields(
-    this_station_fields, 
-    criteria=[
-        MeasureType.AIRTEMP, 
-        MeasureType.DEW_POINT,
-        CollectionFrequency.MIN60,
-        Units.FAHRENHEIT
-    ]
-)
-
-# collect bulk measures data from Wisconet API
-bulk_measure_response = bulk_measures(
-    station_id=this_station.station_id, 
-    start_time=start_date, 
-    end_time=end_date,
-    fields=filtered_field_standard_names
-)
-
-# process Wisconet data format to pandas Dataframe and plot
-hv.extension('matplotlib')
-df = bulk_measures_to_df(bulk_measure_response)
-mpl_fig = hv.render(
-    df
-    .hvplot
-    .line(
-        x="collection_time", 
-        y="value",
-        by="standard_name",
-        ylabel=Units.FAHRENHEIT.value,
-        rot=90,
-        width=800, 
-        height=400,
-        legend="top_left",
-        title=f"{this_station.station_name}/{this_station.station_id}\n"
-              f"{start_date.isoformat()} to {end_date.isoformat()}"
-    )
-)
-mpl_fig.savefig("specific_data_specific_time.png")
-```
-![Specific data over a specific time period](./notebooks/specific_data_specific_time.png)
-
-### see more examples in the notebooks/examples.ipynb
