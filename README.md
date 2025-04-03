@@ -5,16 +5,17 @@ This API provides access to weather-related data using a FastAPI-based backend. 
 Table of Contents
 
 - Features
-- Prerequisites
+- Agriculture models: ag_models_wrappers folder
 - Installation
 - Running the API
-- Endpoints
+- Ag Forecasting Endpoints
+  - IBM Weather Data
+  - Wisconet Weather Data
+- pywisconet Endpoints
   - Get Station Fields
   - Bulk Measurements
   - Active Stations
-  - IBM Weather Data
-  - Wisconet Weather Data
-  - Root Endpoint
+- Root Endpoint
 - WSGI Compatibility
 - Environment Variables
 - Notes
@@ -28,15 +29,13 @@ Table of Contents
 - Wisconet Weather Data: Access weather data aggregated daily from Wisconet.
 
 
-
 ## Agriculture models: ag_models_wrappers folder
 The ag_models_wrappers serve as the critical layer for providing crop model-based risk assessments tailored to weather data on specific locations eg Wisconet Stations or punctual locations in Wisconsin by IBM data. This component integrates various forecasting models to deliver localized risk predictions for plant diseases for a given forecasting date, enabling informed decision-making in agricultural management.
-- Wisconet API Wrapper: This REST API simplifies communication between the Wisconet API service and our dashboard. We developed an API that dynamically retrieves data from available weather stations, fetching daily and hourly variables necessary for the input of various disease models.
-- IBM API Wrapper: This REST API facilitates communication between the IBM paid service and our dashboard. Access to the IBM service is secured with an API key.
-Both APIs are open-source and can be integrated into other processes. Note that the IBM API requires an API key for access.
-See below the documentation.
+- Ag Forecasting based on Wisconet API Wrapper: This REST API simplifies communication between the Wisconet API service and our ag forecasting logic. We developed an API that dynamically retrieves data from available weather stations for a given forecasting date, fetching daily and hourly variables necessary for the input of various crop disease models.
+- Ag Forecasting based on IBM API Wrapper: This REST API facilitates communication between the IBM paid service and our ag forecasting logic. Access to the IBM service is secured with an API key.
+Both APIs are open-source and can be integrated into your processes. Note that the IBM API requires an API key for access.
 
-See an example on how to programatically use our API here https://github.com/UW-Madison-DSI/ag_forecasting_api/blob/main/materials/example_callapi.ipynb
+See a python example on how to programatically use our API: https://github.com/UW-Madison-DSI/ag_forecasting_api/blob/main/materials/example_callapi.ipynb
 
 ## Installation
 
@@ -164,7 +163,6 @@ GET /bulk_measures/ALTN?start_date=2024-07-01&end_date=2024-07-02&measurements=A
 
 ```
 
-
 ## Acknowledgements:
 This is an initiative of the Open source Program Office at the University of Madison-Wisconsin.
 
@@ -174,3 +172,5 @@ Visit our API application through our interactive Dashboard:
 - [Link](https://connect.doit.wisc.edu/ag_forecasting/)
 - [GitHub Repo](https://github.com/UW-Madison-DSI/corn_disease_forecast_api.git)
 
+**Matainer**
+- Maria Oros, Data Scientist, Data Science Institute at UW-Madison
