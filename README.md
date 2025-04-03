@@ -5,6 +5,7 @@ This API provides access to weather-related data using a FastAPI-based backend. 
 Table of Contents
 
 - Features
+- A use case of our API Integration: visualizing the Ag forecasting for Wisconsin
 - Agriculture models: ag_models_wrappers folder
 - Installation
 - Running the API
@@ -28,7 +29,7 @@ Table of Contents
 - IBM Weather Integration: Fetch and clean daily weather data from IBM Weather API.
 - Wisconet Weather Data: Access weather data aggregated daily from Wisconet.
 
-## Integration of the API into a dynamic dashboard to visualize the Ag forecasting
+## A use case of our API Integration: visualizing the Ag forecasting for Wisconsin
 Visit our API application through our interactive Dashboard:
 - [Link](https://connect.doit.wisc.edu/ag_forecasting/)
 - [GitHub Repo](https://github.com/UW-Madison-DSI/corn_disease_forecast_api.git)
