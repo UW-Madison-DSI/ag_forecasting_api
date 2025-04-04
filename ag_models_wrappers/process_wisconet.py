@@ -158,21 +158,19 @@ async def api_call_wisconet_data_async(session, station_id, end_time):
         daily_rh_above_90['air_temp_max_c'] = fahrenheit_to_celsius(daily_rh_above_90['air_temp_max_f'])
         daily_rh_above_90['air_temp_min_c'] = fahrenheit_to_celsius(daily_rh_above_90['air_temp_min_f'])
         daily_rh_above_90['air_temp_avg_c'] = daily_rh_above_90[['air_temp_max_c', 'air_temp_min_c']].mean(axis=1)
-        daily_rh_above_90['rh_above_90_night_14d_ma'] = daily_rh_above_90['nhours_rh_above_90'].rolling(
-            window=14, min_periods=14).mean()
-        daily_rh_above_90['rh_above_80_day_30d_ma'] = daily_rh_above_90['hours_rh_above_80_day'].rolling(
-            window=30, min_periods=30).mean()
+        rolling_windows = {
+            'rh_above_90_night_14d_ma': ('nhours_rh_above_90', 14),
+            'rh_above_80_day_30d_ma': ('hours_rh_above_80_day', 30),
+            'air_temp_min_c_21d_ma': ('air_temp_min_c', 21),
+            'air_temp_max_c_30d_ma': ('air_temp_max_c', 30),
+            'air_temp_avg_c_30d_ma': ('air_temp_avg_c', 30),
+            'rh_max_30d_ma': ('rh_max', 30),
+            'max_ws_30d_ma': ('max_ws', 30),
+            'dp_min_30d_c_ma': ('min_dp_c', 30)
+        }
 
-        # Calculate moving averages
-        daily_rh_above_90['air_temp_min_c_21d_ma'] = daily_rh_above_90['air_temp_min_c'].rolling(window=21,
-                                                                                                 min_periods=21).mean()
-        daily_rh_above_90['air_temp_max_c_30d_ma'] = daily_rh_above_90['air_temp_max_c'].rolling(window=30,
-                                                                                                 min_periods=30).mean()
-        daily_rh_above_90['air_temp_avg_c_30d_ma'] = daily_rh_above_90['air_temp_avg_c'].rolling(window=30,
-                                                                                                 min_periods=30).mean()
-        daily_rh_above_90['rh_max_30d_ma'] = daily_rh_above_90['rh_max'].rolling(window=30, min_periods=30).mean()
-        daily_rh_above_90['max_ws_30d_ma'] = daily_rh_above_90['max_ws'].rolling(window=30, min_periods=30).mean()
-        daily_rh_above_90['dp_min_30d_c_ma'] = daily_rh_above_90['min_dp_c'].rolling(window=30, min_periods=30).mean()
+        for new_col, (col, window) in rolling_windows.items():
+            daily_rh_above_90[new_col] = daily_rh_above_90[col].rolling(window=window, min_periods=window).mean()
 
         return daily_rh_above_90
 

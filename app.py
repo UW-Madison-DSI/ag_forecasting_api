@@ -20,26 +20,6 @@ from ag_models_wrappers.process_wisconet import *
 
 app = FastAPI()
 
-# Endpoint for querying station fields by station_id
-@app.get("/station_fields/{station_id}")
-def station_fields_query(station_id: str):
-    """
-    Retrieve the fields for a given station based on its station_id.
-
-    Args:
-        station_id (str): The ID of the station to retrieve fields for.
-
-    Returns:
-        dict: The fields associated with the specified station.
-    """
-    try:
-        result = station_fields(station_id)
-        if result is None:
-            raise HTTPException(status_code=404, detail=f"Station {station_id} not found")
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
 
 # Endpoint for querying bulk measures for a given station and date range
 @app.get('/bulk_measures/{station_id}')
@@ -166,20 +146,14 @@ def all_data_from_ibm_query(
         dict: Cleaned daily weather data as JSON serializable records.
     """
     try:
-        # Check if provided credentials match environment variables
-        if (API_KEY == os.getenv("IBM_API_KEY") and
-                TENANT_ID == os.getenv("TENANT_ID") and
-                ORG_ID == os.getenv("ORG_ID")):
-
-            # Assuming get_weather is a defined function that fetches the data
-            weather_data = get_weather(latitude, longitude, forecasting_date,
+        # Assuming get_weather is a defined function that fetches the data
+        weather_data = get_weather(latitude, longitude, forecasting_date,
                                        ORG_ID, TENANT_ID, API_KEY)
-            df = weather_data['daily']
-            # Replace infinities and NaN values with None
-            df_cleaned = df.replace([np.inf, -np.inf, np.nan], None).where(pd.notnull(df), None)
-            return df_cleaned.to_dict(orient="records")
-        else:
-            return None
+        df = weather_data['daily']
+        # Replace infinities and NaN values with None
+        df_cleaned = df.replace([np.inf, -np.inf, np.nan], None).where(pd.notnull(df), None)
+        return df_cleaned.to_dict(orient="records")
+
     except ValueError as e:
         raise HTTPException(status_code=400, detail=f"Invalid input: {e}")
     except Exception as e:
@@ -204,7 +178,6 @@ def all_data_from_wisconet_query(
         dict: Cleaned weather data as JSON serializable records.
     """
     try:
-        #df = retrieve_tarspot_all_stations_optimized(input_date=forecasting_date, input_station_id=station_id, days=risk_days)
         df = main(input_date=forecasting_date, input_station_id=station_id, days=risk_days)
         df_cleaned = df.replace([np.inf, -np.inf, np.nan], None).where(pd.notnull(df), None)
         return df_cleaned.to_dict(orient="records")

@@ -17,7 +17,7 @@ from ag_models_wrappers.forecasting_models import (
 )
 
 
-URL_saascore = os.getenv("URL_saascore")
+URL_saascore = 'https://api.ibm.com/saascore/run/authentication-retrieve'#os.getenv("URL_saascore")
 
 def kmh_to_mps(speed_kmh):
     """Convert speed from km/h to m/s."""
@@ -130,7 +130,7 @@ def build_hourly(data, tz='US/Central'):
     data['dttm_utc'] = pd.to_datetime(data['validTimeUtc'], utc=True)
 
     # Convert to Central Time (America/Chicago)
-    data['dttm'] = data['dttm_utc'].dt.tz_convert('US/Central')
+    data['dttm'] = data['dttm_utc'].dt.tz_convert(tz)
 
     # Extract additional fields
     data['date'] = data['dttm'].dt.date
@@ -177,29 +177,6 @@ def build_daily(hourly):
     return pd.merge(ds1, allday_rh, left_on='date', right_on='date', how='left')
 
 
-def add_moving_averages(data):
-    '''
-
-    Args:
-        data:
-
-    Returns:
-
-    '''
-    for col in ['temperature_max', 'temperature_mean',
-                'temperatureDewPoint_min',
-                'relativeHumidity_max', 'windSpeed_max',
-                'hours_rh90_night', 'hours_rh80_allday']:
-        if col in ['hours_rh90_night']:
-            data[f'{col}_14ma'] = rolling_mean(data[col], 14)
-        else:
-            data[f'{col}_30ma'] = rolling_mean(data[col], 30)
-
-    data[f'temperature_min_21ma'] = rolling_mean(data['temperature_min'], 21)
-
-    return data
-
-
 def get_weather(lat, lng, end_date, API_KEY, TENANT_ID, ORG_ID):
     '''
 
@@ -230,39 +207,75 @@ def get_weather(lat, lng, end_date, API_KEY, TENANT_ID, ORG_ID):
             print("No data returned from API.")
             return None
 
-        hourly = build_hourly(hourly_data, "US/Central")
-        daily = build_daily(hourly)
+        hourly = build_hourly(hourly_data, tz)
+        daily_data = build_daily(hourly)
 
+        # Define the window sizes for each column
+        col_windows = {
+            'temperature_max': 30,
+            'temperature_mean': 30,
+            'temperatureDewPoint_min': 30,
+            'relativeHumidity_max': 30,
+            'windSpeed_max': 30,
+            'hours_rh90_night': 14,
+            'hours_rh80_allday': 30,
+            'temperature_min': 21
+        }
 
-        daily_data = add_moving_averages(daily)
+        # Apply the rolling mean using the defined window sizes
+        for col, window in col_windows.items():
+            daily_data[f'{col}_{window}ma'] = rolling_mean(daily_data[col], window)
+
+        # Apply the rolling mean for the additional column
+
         daily_data['forecasting_date'] = daily_data['date'].apply(lambda x: x + timedelta(days=1))
 
-
         daily_data = daily_data.join(
-            daily_data.apply(lambda row: calculate_tarspot_risk_function(
-                row['temperature_mean_30ma'], row['relativeHumidity_max_30ma'], row['hours_rh90_night_14ma']), axis=1)
-        )
-
-
-        daily_data = daily_data.join(
-            daily_data.apply(lambda row: calculate_gray_leaf_spot_risk_function(
-                row['temperature_min_21ma'], row['temperatureDewPoint_min_30ma']), axis=1)
-        )
-        daily_data = daily_data.join(
-            daily_data.apply(lambda row: calculate_frogeye_leaf_spot_function(
-                row['temperature_max_30ma'], row['hours_rh80_allday_30ma']), axis=1)
+            daily_data.apply(
+                lambda row: (-1, 'Inactive')
+                if row['temperature_mean_30ma'] < 15
+                else calculate_tarspot_risk_function(
+                    row['temperature_mean_30ma'],
+                    row['relativeHumidity_max_30ma'],
+                    row['hours_rh90_night_14ma']
+                ),
+                axis=1
+            )
         )
 
         daily_data = daily_data.join(
-            daily_data.apply(lambda row: calculate_irrigated_risk(
-                row['temperature_max_30ma'], row['relativeHumidity_max_30ma']), axis=1)
+            daily_data.apply(
+                lambda row:
+                calculate_gray_leaf_spot_risk_function(
+                    row['temperature_min_21ma'], row['temperatureDewPoint_min_30ma']
+                ),
+                axis=1
+            )
         )
 
         daily_data = daily_data.join(
-            daily_data.apply(lambda row: calculate_non_irrigated_risk(
-                row['temperature_max_30ma'], row['relativeHumidity_max_30ma'], row['windSpeed_max_30ma']), axis=1)
+            daily_data.apply(lambda row:
+                calculate_frogeye_leaf_spot_function(
+                    row['temperature_max_30ma'], row['hours_rh80_allday_30ma']
+            ), axis=1)
+        )
+
+        daily_data = daily_data.join(
+            daily_data.apply(lambda row:
+                calculate_irrigated_risk(
+                    row['temperature_max_30ma'], row['relativeHumidity_max_30ma']
+            ), axis=1)
+        )
+
+        daily_data = daily_data.join(
+            daily_data.apply(lambda row:
+                calculate_non_irrigated_risk(
+                    row['temperature_max_30ma'], row['relativeHumidity_max_30ma'], row['windSpeed_max_30ma']
+            ), axis=1)
         )
         return {"hourly": hourly, "daily": daily_data}
+
     except Exception as e:
+
         print("Exception at the IBM risk compute: >>>>>> ",e," <<<<<<")
         return {"hourly": None, "daily": None}

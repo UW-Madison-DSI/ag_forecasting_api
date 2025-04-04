@@ -48,6 +48,11 @@ def logistic_f(logit):
     '''
     return np.exp(logit) / (1 + np.exp(logit))
 
+def compute_logit(const, terms):
+    """
+    Compute a logit value given a constant and a list of (coefficient, variable) tuples.
+    """
+    return const - sum(coef * var for coef, var in terms)
 
 ###################### Damon et. al.
 def calculate_tarspot_risk_function(meanAT30d, maxRH30d, rh90_night_tot14d):
@@ -61,23 +66,36 @@ def calculate_tarspot_risk_function(meanAT30d, maxRH30d, rh90_night_tot14d):
     Returns:
 
     '''
-    logit_LR4 = 32.06987 - (0.89471 * meanAT30d) - (0.14373 * maxRH30d)
-    logit_LR6 = 20.35950 - (0.91093 * meanAT30d) - (0.29240 * rh90_night_tot14d)
-    probabilities = [logistic_f(logit_LR4), logistic_f(logit_LR6)]
-    ensemble_prob = np.mean(probabilities)
-
-    print('--------',meanAT30d)
-    risk_class = 'Inactive'
-    if meanAT30d<10:
-        risk_class='Inactive'
+    if meanAT30d is None or meanAT30d==np.nan:
+        #in the moving average computation I wont have maxAT30MA if not enough number of days, so then I will report NoData
+        risk_class = 'NoData'
         ensemble_prob = -1
     else:
-        if ensemble_prob < 0.2:
-            risk_class = "1.Low"
-        elif ensemble_prob > 0.35:
-            risk_class = "3.High"
-        elif ensemble_prob >= .2 or ensemble_prob <= .35:
-            risk_class = "2.Moderate"
+        risk_class = 'Inactive'
+        if meanAT30d<10:
+            risk_class='Inactive'
+            ensemble_prob = -1
+        else:
+            logit_models = [
+                (32.06987, [(0.89471, meanAT30d), (0.14373, maxRH30d)]),
+                (20.35950, [(0.91093, meanAT30d), (0.29240, rh90_night_tot14d)])
+            ]
+
+            # Compute the logits for each model
+            logits = [compute_logit(const, terms) for const, terms in logit_models]
+
+            # Compute the probabilities using your logistic function
+            probabilities = [logistic_f(logit) for logit in logits]
+
+            # Calculate the ensemble probability by averaging the individual probabilities
+            ensemble_prob = sum(probabilities) / 2
+
+            if ensemble_prob < 0.2:
+                risk_class = "1.Low"
+            elif ensemble_prob > 0.35:
+                risk_class = "3.High"
+            elif ensemble_prob >= .2 or ensemble_prob <= .35:
+                risk_class = "2.Moderate"
 
     return pd.Series({"tarspot_risk": ensemble_prob, "tarspot_risk_class": risk_class})
 
@@ -93,20 +111,26 @@ def calculate_gray_leaf_spot_risk_function(minAT21, minDP30):
 
     Implicit rules: Growth stage within V10 and R3 and Not irrigation total needed
     '''
-    prob = logistic_f(-2.9467 - (0.03729 * minAT21) + (0.6534 * minDP30))
-    risk_class = 'Inactive'
-
-    if minAT21 < 5:
-        risk_class = 'Inactive'
+    if minAT21 is None or minAT21==np.nan:
+        #in the moving average computation I wont have minAT21MA if not enough number of days, so then I will report NoData
+        risk_class = 'NoData'
         prob = -1
     else:
-        if prob < 0.2:
-            risk_class = "1.Low"
-        elif prob > 0.6:
-            risk_class = "3.High"
-        elif prob >= .2 or prob <= .6:
-            risk_class = "2.Moderate"
+        if minAT21 < 5:
+            risk_class = 'Inactive'
+            prob = -1
+        else:
+            prob = logistic_f(-2.9467 - (0.03729 * minAT21) + (0.6534 * minDP30))
+            risk_class = 'Inactive'
 
+            if prob < 0.2:
+                risk_class = "1.Low"
+            elif prob > 0.6:
+                risk_class = "3.High"
+            elif prob >= .2 or prob <= .6:
+                risk_class = "2.Moderate"
+            else:
+                risk_class = 'NoData'
 
     return pd.Series({"gls_risk": prob, "gls_risk_class": risk_class})
 
@@ -121,26 +145,35 @@ def calculate_non_irrigated_risk(maxAT30MA, maxRH30MA, maxWS30MA):
     Returns:
 
     '''
-    #logit_nirr = (-0.47 * maxAT30MA) - (1.01 * maxWS30MA) + 16.65
-    logit_nirr1 = -0.47 * (maxAT30MA) -1.01 * (maxWS30MA) + 16.65
-    logit_nirr2 = -0.68 * (maxAT30MA) + 17.19
-    logit_nirr3 = -0.56 * (maxAT30MA) + 0.10 * (maxRH30MA)-0.75 * (maxWS30MA) + 8.20
-    prob1 = logistic_f(logit_nirr1)
-    prob2= logistic_f(logit_nirr2)
-    prob3 = logistic_f(logit_nirr3)
-
-    prob=(prob1+prob2+prob3)/3
-
-    if maxAT30MA<15:
-        risk_class='Inactive'
+    if maxAT30MA is None or maxAT30MA==np.nan:
+        #in the moving average computation I wont have maxAT30MA if not enough number of days, so then I will report NoData
+        risk_class = 'NoData'
         prob = -1
     else:
-        if prob<.2:
-            risk_class = '1.Low'
-        elif prob>.35:
-            risk_class = '3.High'
+        if maxAT30MA<15:
+            risk_class='Inactive'
+            prob = -1
         else:
-            risk_class = '2.Moderate'
+            logits = [
+                -0.47 * maxAT30MA - 1.01 * maxWS30MA + 16.65,
+                -0.68 * maxAT30MA + 17.19,
+                -0.56 * maxAT30MA + 0.10 * maxRH30MA - 0.75 * maxWS30MA + 8.20
+            ]
+
+            # Compute probabilities using the logistic function
+            probs = [logistic_f(logit) for logit in logits]
+
+            # Compute the average probability
+            prob = sum(probs) / 3
+
+            if prob<.2:
+                risk_class = '1.Low'
+            elif prob>.35:
+                risk_class = '3.High'
+            elif prob<=.35 and prob>=.2:
+                risk_class = '2.Moderate'
+            else:
+                risk_class = 'NoData'
 
     return pd.Series({"whitemold_nirr_risk": prob, "whitemold_nirr_risk_class": risk_class})
 
@@ -184,16 +217,20 @@ def calculate_irrigated_risk(maxAT30MA, maxRH30MA):
             risk_class_15 = '1.Low'
         elif prob_logit_irr_15 > 0.1:
             risk_class_15 = '3.High'
-        else:
+        elif prob_logit_irr_15 <= 0.1 and prob_logit_irr_15 >= 0.05:
             risk_class_15 = '2.Moderate'
+        else:
+            risk_class_15 = 'NoData'
 
         # Classification for 30in model
         if prob_logit_irr_30 < 0.05:
             risk_class_30 = '1.Low'
         elif prob_logit_irr_30 > 0.1:
             risk_class_30 = '3.High'
-        else:
+        elif prob_logit_irr_30 <= 0.1 and prob_logit_irr_30 >= 0.05:
             risk_class_30 = '2.Moderate'
+        else:
+            risk_class_30 = 'NoData'
 
     # Return the computed values as a pandas Series
     return pd.Series({
@@ -214,18 +251,28 @@ def calculate_frogeye_leaf_spot_function(maxAT30, rh80tot30):
 
     Implicit rules: Growth stage within R1 and R5, No irrigation total needed
     '''
-    logit_fe = -5.92485 + (0.1220 * maxAT30) + (0.1732 * rh80tot30)
-    prob_logit_fe = logistic_f(logit_fe)
-    risk_class = 'Inactive'
-    if maxAT30 < 15:
-        risk_class = 'Inactive'
+
+
+    if maxAT30 is None or maxAT30==np.nan:
+        risk_class = 'NoData'
         prob_logit_fe = -1
     else:
-        if prob_logit_fe < 0.5:
-            risk_class = "1.Low"
-        elif prob_logit_fe > 0.6:
-            risk_class = "3.High"
-        elif prob_logit_fe>=.5 or prob_logit_fe<=.6:
-            risk_class = "2.Moderate"
+        logit_fe = -5.92485 + (0.1220 * maxAT30) + (0.1732 * rh80tot30)
+        prob_logit_fe = logistic_f(logit_fe)
+        risk_class = '2.Moderate'
+        if maxAT30 < 15:
+            risk_class = 'Inactive'
+            prob_logit_fe = -1
+        else:
+            if prob_logit_fe < 0.5:
+                risk_class = "1.Low"
+            elif prob_logit_fe > 0.6:
+                risk_class = "3.High"
+            elif prob_logit_fe>=.5 or prob_logit_fe<=.6:
+                risk_class = "2.Moderate"
+            else:
+                risk_class = 'NoData'
+
+
 
     return pd.Series({"fe_risk": prob_logit_fe, "fe_risk_class": risk_class})
