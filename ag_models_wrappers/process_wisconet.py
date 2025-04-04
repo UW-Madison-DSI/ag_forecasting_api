@@ -201,23 +201,22 @@ async def one_day_measurements_async(session, station_id, end_time, days):
             days = 7  # Limit to 7 days for performance
 
         # Run API call to get daily data
-        daily_rh_above_90 = await api_call_wisconet_data_async(session, station_id, end_time)
+        daily_data = await api_call_wisconet_data_async(session, station_id, end_time)
 
         # Validate the data
-        if daily_rh_above_90 is None:
+        if daily_data is None:
             print(f"No RH data found for station {station_id}.")
             return None
 
         # Process the data - optimize by limiting to needed days first
         # Merge on the 'date' column
-        combined_df = daily_rh_above_90[['date', 'rh_above_90_night_14d_ma',
+        daily_data['station_id'] = station_id
+
+        combined_df = daily_data[['date', 'rh_above_90_night_14d_ma',
                                          'rh_above_80_day_30d_ma',
                                          'air_temp_max_c_30d_ma', 'air_temp_min_c_21d_ma',
                                          'air_temp_avg_c_30d_ma', 'rh_max_30d_ma', 'max_ws_30d_ma',
-                                         'dp_min_30d_c_ma']]
-
-        combined_df['station_id'] = station_id
-        combined_df = combined_df.sort_values('date', ascending=False).head(days)
+                                         'dp_min_30d_c_ma','station_id']].sort_values('date', ascending=False).head(days)
 
         # Save to cache
         with open(cache_file, 'wb') as f:
