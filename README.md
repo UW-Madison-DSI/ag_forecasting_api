@@ -1,6 +1,6 @@
-# Open Source Ag Forecasting API
+# Open Source Agricultural Forecasting API
 
-This API provides access to weather-related data using a FastAPI-based backend. The application integrates weather station data and forecasting from multiple sources, including IBM Weather and Wisconet. It also supports querying bulk measurements for stations over specified date ranges.
+This API provides access to crop disease models developed by the University of wisconesin Madison experts in plant pathology. The API uses a FastAPI-based backend and integrates weather station data from public and private sources, including mesonet weather stations and IBM Environmental Intelligence. It also supports querying Wisconet by a wrapper built in top of it in a custom way. 
 [API](https://connect.doit.wisc.edu/pywisconet_wrapper/docs#/default/all_data_from_wisconet_query_ag_models_wrappers_wisconet_get)
 
 Table of Contents
@@ -8,7 +8,7 @@ Table of Contents
 - [Features](#features)
 - [A use case of our API Integration: visualizing the Ag forecasting for Wisconsin](#a-use-case-of-our-api-integration-visualizing-the-ag-forecasting-for-wisconsin)
 - [Agriculture models: ag_models_wrappers folder](#agriculture-models-ag_models_wrappers-folder)
-- [Installation](#installation)
+- [Plant Disease models](#plant-disease-models)
 - [Running the API](#running-the-api)
 - [Ag Forecasting Endpoints](#ag-forecasting-endpoints)
   - [IBM Weather Data](#ibm-weather-data)
@@ -20,25 +20,28 @@ Table of Contents
 - [Root Endpoint](#root-endpoint)
 - [WSGI Compatibility](#wsgi-compatibility)
 - [Environment Variables](#environment-variables)
-- [Plant Disease models](#plant-disease-models)
+- [Installation](#installation)
 - [License](#license)
 - [Acknowledgements](#acknowledgements)
 
 
 ## Features
 
+- Crop disease forecasting models for corn and soybean.
+  - IBM Weather Integration: Fetch and clean daily weather data from IBM Weather API.
+  - Wisconet Weather Data: Access weather data aggregated daily from Wisconet.
 - Station Fields Retrieval: Get details of a weather station by its ID.
 - Bulk Measurements: Retrieve weather measurements for a station within a specified date range and frequency.
 - Active Stations Query: List stations based on active days and a provided start date.
-- IBM Weather Integration: Fetch and clean daily weather data from IBM Weather API.
-- Wisconet Weather Data: Access weather data aggregated daily from Wisconet.
 
 ## A use case of our API Integration: visualizing the Ag forecasting for Wisconsin
+
 Visit our API application through our interactive Dashboard:
 - [Link](https://connect.doit.wisc.edu/ag_forecasting/)
 - [GitHub Repo](https://github.com/UW-Madison-DSI/corn_disease_forecast_api.git)
 
-## Agriculture models: ag_models_wrappers folder
+## Agricultural crop disease forecasting models: ag_models_wrappers folder
+
 The ag_models_wrappers serve as the critical layer for providing crop model-based risk assessments tailored to weather data on specific locations eg Wisconet Stations or punctual locations in Wisconsin by IBM data. This component integrates various forecasting models to deliver localized risk predictions for plant diseases for a given forecasting date, enabling informed decision-making in agricultural management.
 - Ag Forecasting based on Wisconet API Wrapper: This REST API simplifies communication between the Wisconet API service and our ag forecasting logic. We developed an API that dynamically retrieves data from available weather stations for a given forecasting date, fetching daily and hourly variables necessary for the input of various crop disease models.
 - Ag Forecasting based on IBM API Wrapper: This REST API facilitates communication between the IBM paid service and our ag forecasting logic. Access to the IBM service is secured with an API key.
@@ -46,25 +49,21 @@ Both APIs are open-source and can be integrated into your processes. Note that t
 
 See a python example on how to programatically use our API: https://github.com/UW-Madison-DSI/ag_forecasting_api/blob/main/materials/example_callapi.ipynb
 
-## Installation
+### Plant disease models
 
-```commandline
-git clone https://github.com/UW-Madison-DSI/ag_forecasting_api.git
-cd pywisconet
+Selected field crops and vegetable disease model outputs are provided. These models are subject to change. The calculations used to generate each model prediction can be viewed in the source code.
 
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+**Soybean Crop Disease** White mold (aka Sporecaster), probability of apothecial presence. More information: https://cropprotectionnetwork.org/news/smartphone-application-to-forecast-white-mold-in-soybean-now-available-to-growers
 
-pip install -r requirements.txt
+  - dry 
+  - irrigated 15-inch row spacing
+  - irrigated 30-inch row spacing
+  
+**Corn Crop Disease**
 
-```
-
-## Running the API
-```commandline
-uvicorn app:app --reload
-
-```
-The API will be available at http://127.0.0.1:8000.
+- Frogeye Leaf Spot - More information: https://cropprotectionnetwork.org/encyclopedia/frogeye-leaf-spot-of-soybean
+- Gray Leaf Spot of corn - More information: https://cropprotectionnetwork.org/encyclopedia/gray-leaf-spot-of-corn
+- Tar Spot of corn (aka Tarspotter) - More information: https://cropprotectionnetwork.org/encyclopedia/tar-spot-of-corn
 
 ## Ag Forecasting Endpoints
 
@@ -172,21 +171,30 @@ GET /bulk_measures/ALTN?start_date=2024-07-01&end_date=2024-07-02&measurements=A
 
 ```
 
-## Plant disease models
 
-Selected field crops and vegetable disease model outputs are provided. These models are subject to change. The calculations used to generate each model prediction can be viewed in the source code.
+## Running the API Locally
 
-**Soybean Crop Disease** White mold (aka Sporecaster), probability of apothecial presence. More information: https://cropprotectionnetwork.org/news/smartphone-application-to-forecast-white-mold-in-soybean-now-available-to-growers
+### Installation
 
-  - dry 
-  - irrigated 15-inch row spacing
-  - irrigated 30-inch row spacing
-  
-**Corn Crop Disease**
+```commandline
+git clone https://github.com/UW-Madison-DSI/ag_forecasting_api.git
+cd pywisconet
 
-- Frogeye Leaf Spot - More information: https://cropprotectionnetwork.org/encyclopedia/frogeye-leaf-spot-of-soybean
-- Gray Leaf Spot of corn - More information: https://cropprotectionnetwork.org/encyclopedia/gray-leaf-spot-of-corn
-- Tar Spot of corn (aka Tarspotter) - More information: https://cropprotectionnetwork.org/encyclopedia/tar-spot-of-corn
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+pip install -r requirements.txt
+
+```
+
+### Run locally
+
+
+```commandline
+uvicorn app:app --reload
+
+```
+The API will be available at http://127.0.0.1:8000.
 
 ## License
 
