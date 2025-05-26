@@ -177,12 +177,16 @@ def all_data_from_wisconet_query(
     Returns:
         dict: Cleaned weather data as JSON serializable records.
     """
+    df = retrieve(input_date=forecasting_date, input_station_id=station_id, days=risk_days)
+    print(df)
     try:
-        df = main(input_date=forecasting_date, input_station_id=station_id, days=risk_days)
-        df_cleaned = df.replace([np.inf, -np.inf, np.nan], None).where(pd.notnull(df), None)
-        return df_cleaned.to_dict(orient="records")
+        if len(df)>0:
+            df_cleaned = df.replace([np.inf, -np.inf, np.nan], None).where(pd.notnull(df), None)
+            return df_cleaned.to_dict(orient="records")
+        else:
+            return {}
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=f"Invalid input: {e}")
+        raise HTTPException(status_code=400, detail=f"Invalid input in all_data_from_wisconet_query: {e}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
 
