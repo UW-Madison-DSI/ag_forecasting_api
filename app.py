@@ -98,7 +98,6 @@ def bulk_measures_query(
         return df[cols].to_dict(orient="records")
 
 
-# Endpoint for querying data from IBM
 @app.get("/wisconet/active_stations/")
 def stations_query(
         min_days_active: int,
@@ -190,10 +189,14 @@ def all_data_from_wisconet_query(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
 
-# Root endpoint
+
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the Wisconsin Weather API"}
+
+
+# Remove the WSGI code - it's not needed for FastAPI
+
 
 # Create a WSGI application
 from starlette.applications import Starlette
@@ -221,4 +224,3 @@ def create_wsgi_app():
     return app
 
 wsgi_app = WSGIMiddleware(create_wsgi_app())
-

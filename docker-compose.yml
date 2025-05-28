@@ -1,0 +1,31 @@
+version: "3.9"
+
+services:
+  ag_forecasting_api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    expose:
+      - "8000"
+    environment:
+      - PYTHONPATH=/app
+      - ENVIRONMENT=production
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ag_forecasting_api.rule=Host(`ag-forecasting-api.services.dsi.wisc.edu`)"
+      - "traefik.http.routers.ag_forecasting_api.tls=true"
+      - "traefik.http.routers.ag_forecasting_api.tls.certresolver=myresolver"
+      - "traefik.http.services.ag_forecasting_api.loadbalancer.server.port=8000"
+    networks:
+      - traefik_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  traefik_network:
+    external: true
