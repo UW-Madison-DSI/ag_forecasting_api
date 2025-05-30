@@ -17,7 +17,9 @@ from ag_models_wrappers.forecasting_models import (
     calculate_non_irrigated_risk,
     fahrenheit_to_celsius
 )
+from datetime import date
 
+today = date.today()
 # ─── Constants ────────────────────────────────────────────────────────────────
 BATCH_SIZE = 20
 BASE_URL = "https://wisconet.wisc.edu/api/v1"
@@ -261,6 +263,16 @@ def chunk_dataframe(df, num_chunks):
     return [df.iloc[i:i+size] for i in range(0, n, size)]
 
 async def retrieve_tarspot_all_stations_async(input_date, input_station_id=None, days=1):
+    '''
+
+    Args:
+        input_date:
+        input_station_id:
+        days:
+
+    Returns:
+
+    '''
     FINAL_COLUMNS = [
         'station_id','date','forecasting_date','station_name','city','county',
         'latitude','longitude','region','state','station_timezone',
@@ -269,71 +281,61 @@ async def retrieve_tarspot_all_stations_async(input_date, input_station_id=None,
         'whitemold_irr_30in_risk','whitemold_irr_15in_risk',
         'whitemold_irr_15in_class','whitemold_irr_30in_class'
     ]
+    try:
+        async with await get_async_session() as session:
+            # 1) Load or fetch station list, with caching
+            stations = None
 
-    async with await get_async_session() as session:
-        # 1) Load or fetch station list, with caching
-        stations = None
-        if os.path.exists(STATIONS_CACHE_FILE):
-            age = (datetime.now() - datetime.fromtimestamp(os.path.getmtime(STATIONS_CACHE_FILE))).days
-            if age < CACHE_EXPIRY_DAYS:
+            if today.day == 1:
+                url = f"https://api.wisconet.wisc.edu/api/v1/stations/"
+                async with session.get(url) as resp:
+                    if resp.status == 200:
+                        stations = pd.DataFrame(await resp.json())
+                        stations['earliest_api_date'] = pd.to_datetime(stations['earliest_api_date'])
+
+                        # 3) parse your input_date (assumed here to be a string like '2025-05-30')
+                        input_dt = pd.to_datetime(input_date)
+
+                        # 4) compute the threshold date (30 days before)
+                        threshold = input_dt - pd.Timedelta(days=30)
+                        # 5) filter
+                        stations = stations[stations['earliest_api_date'] <= threshold]
+                        stations.to_csv(STATIONS_CACHE_FILE, index=False)
+                    else:
+                        stations= None
+            if today.day!=1 or stations==None:
                 stations = pd.read_csv(STATIONS_CACHE_FILE)
-        if stations is None:
-            url = (BASE_URL.replace('/api/v1','')
-                   + "/pywisconet_wrapper/wisconet/active_stations/"
-                   + f"?min_days_active=15&start_date={input_date}")
-            async with session.get(url) as resp:
-                if resp.status == 200:
-                    stations = pd.DataFrame(await resp.json())
-                    stations.to_csv(STATIONS_CACHE_FILE, index=False)
-                else:
-                    return None
 
-        # Exclude tests
-        stations = stations[~stations['station_id'].isin(STATIONS_TO_EXCLUDE)]
+            station_ids = stations['station_id'].tolist()
+            if not station_ids:
+                return None
 
-        # ---- Fix for timezone comparison error ----
-        if 'earliest_api_date' in stations.columns:
-            # parse as UTC
-            stations['earliest_api_date'] = pd.to_datetime(
-                stations['earliest_api_date'], utc=True
-            )
-            # make cutoff tz-aware UTC
-            cutoff = pd.to_datetime(input_date).tz_localize('UTC') - pd.Timedelta(days=32)
-            stations = stations[stations['earliest_api_date'] < cutoff]
+            # 3) Fetch measurements
+            dfs = await process_stations_in_batches(session, station_ids, input_date, days)
+            if not dfs:
+                return None
+            meas_df = pd.concat(dfs, ignore_index=True)
 
-        # 2) Filter by input_station_id if provided
-        if input_station_id:
-            ids = [s.strip() for s in input_station_id.split(',')]
-            stations = stations[stations['station_id'].isin(ids)]
+            # 4) Merge metadata
+            meta = stations[[
+                'station_id','station_name','city','county',
+                'latitude','longitude','region','state','station_timezone'
+            ]]
+            merged = pd.merge(meta, meas_df, on='station_id', how='inner')
 
-        station_ids = stations['station_id'].tolist()
-        if not station_ids:
-            return None
+            # 5) Compute risks in parallel
+            chunks = chunk_dataframe(merged, os.cpu_count() or 1)
+            with ProcessPoolExecutor() as exe:
+                futures = [exe.submit(compute_risks, c) for c in chunks]
+                processed = [f.result() for f in as_completed(futures)]
+            final = pd.concat(processed, ignore_index=True)
 
-        # 3) Fetch measurements
-        dfs = await process_stations_in_batches(session, station_ids, input_date, days)
-        if not dfs:
-            return None
-        meas_df = pd.concat(dfs, ignore_index=True)
-
-        # 4) Merge metadata
-        meta = stations[[
-            'station_id','station_name','city','county',
-            'latitude','longitude','region','state','station_timezone'
-        ]]
-        merged = pd.merge(meta, meas_df, on='station_id', how='inner')
-
-        # 5) Compute risks in parallel
-        chunks = chunk_dataframe(merged, os.cpu_count() or 1)
-        with ProcessPoolExecutor() as exe:
-            futures = [exe.submit(compute_risks, c) for c in chunks]
-            processed = [f.result() for f in as_completed(futures)]
-        final = pd.concat(processed, ignore_index=True)
-
-        # 6) Finalize
-        final['date'] = pd.to_datetime(final['date'])
-        final['forecasting_date'] = (final['date'] + timedelta(days=1)).dt.strftime('%Y-%m-%d')
-        return final[FINAL_COLUMNS]
+            # 6) Finalize
+            final['date'] = pd.to_datetime(final['date'])
+            final['forecasting_date'] = (final['date'] + timedelta(days=1)).dt.strftime('%Y-%m-%d')
+            return final[FINAL_COLUMNS]
+    except Exception as e:
+        print('..........>>>>>>>>>>>>>>>>>>. ',e)
 
 def retrieve(input_date, input_station_id=None, days=1):
     return asyncio.run(retrieve_tarspot_all_stations_async(input_date, input_station_id, days))

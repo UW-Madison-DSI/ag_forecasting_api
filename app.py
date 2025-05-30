@@ -177,12 +177,14 @@ def all_data_from_wisconet_query(
         dict: Cleaned weather data as JSON serializable records.
     """
     df = retrieve(input_date=forecasting_date, input_station_id=station_id, days=risk_days)
-    print(df)
+
     try:
         if len(df)>0:
             df_cleaned = df.replace([np.inf, -np.inf, np.nan], None).where(pd.notnull(df), None)
             return df_cleaned.to_dict(orient="records")
+            print(df)
         else:
+            print("-no data from retrieve -------")
             return {}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=f"Invalid input in all_data_from_wisconet_query: {e}")

@@ -1,61 +1,67 @@
-id,elevation,latitude,longitude,city,county,location,region,state,station_id,station_name,station_slug,station_timezone,earliest_api_date,days_active,campbell_cloud_id,legacy_id
-47,461.0,45.158901,-89.117798,Antigo,Langlade,Langlade County Airport,Northeast,WI,ANGO,Antigo,antigo,US/Central,2024-09-11T00:00:00Z,184.0,be41f3c5-db40-4e77-9314-7b64a86bf0bd,S0AY9458XB
-7,304.0,43.2966,-89.3843,Arlington,Columbia County,Arlington Agricultural Research Station,South Central,WI,ALTN,Arlington,arlington,US/Central,2023-05-22T00:00:00Z,662.0,7a0eb3c4-bcaf-c4f7-c3d2-92e8a9da6b06,SLR6NWDRE7
-45,307.0,45.032001,-91.199997,Arthur,Chippewa,Not set,Northwest,WI,RTHR,Arthur,arthur,US/Central,2024-08-28T00:00:00Z,198.0,2f187f9b-f4fa-d1ad-1123-75e3df29071b,S2ELLV2D9Y
-36,296.0,44.253799,-90.268997,Babcock,Wood,Amundson Cranberry Inc,Central,WI,BBCK,Babcock,babcock,US/Central,2024-07-11T00:00:00Z,246.0,f45b6cc4-e520-48f8-e9c7-dd4c98579a8f,SDHS0YT2M2
-31,238.0,44.481499,-88.405899,Black Creek,Outagamie,Fallen Timbers Environmental Center,East Central,WI,BLCR,Black Creek,black_creek,US/Central,2024-06-12T00:00:00Z,275.0,bb5e5c3c-0a51-3958-3dff-6064a0c9b1f9,SCQEZRKA6K
-19,262.0,44.1852,-90.742798,Black River Falls,Jackson,Black River Falls,West Central,WI,WCRS,Black River Falls,black_river_falls,US/Central,2023-10-18T00:00:00Z,513.0,9f8a27d9-f8c6-6252-f611-1153cc105957,SX7MLEE0G2
-30,253.0,44.104,-88.051003,Brillion,Calumet,Dallmann East River Dairy LLC,East Central,WI,BRLN,Brillion,brillion,US/Central,2024-06-11T00:00:00Z,276.0,9e167efb-fdd6-9ea7-5b88-4e5faeb80620,SOVH4DPMII
-23,234.0,42.570999,-88.044998,Bristol,Kenosha,Kenosha County Center,Southeast,WI,BSTL,Bristol,bristol,US/Central,2024-04-22T00:00:00Z,326.0,a81da783-454f-a278-f3f7-b82ba8265bfc,S6HO1L6JBI
-50,271.0,43.838001,-89.030403,Brooklyn,Green,Brooklyn,Central,WI,BKLN,Brooklyn,brooklyn,US/Central,2024-09-25T00:00:00Z,170.0,5723db07-3283-67fb-2c8c-3c5a8fce23ec,SWV1DQCEJF
-38,341.0,45.285801,-92.321297,Clear Lake,Polk,Bull Brook Keep,Northwest,WI,CLLK,Clear Lake,clear_lake,US/Central,2024-07-17T00:00:00Z,240.0,87b71cdc-06b1-fe6c-6721-a94b5021a9ae,S21BCEXFYO
-21,241.0,42.898701,-88.737198,Cold Spring,Jefferson,Cold Spring,South Central,WI,COSP,Cold Spring,cold_spring,US/Central,2023-10-19T00:00:00Z,512.0,26790b04-dbdc-b082-e995-1f25fe466a28,SKF58LYJ1S
-57,495.0,45.522598,-88.923897,Crandon,Forest,Crandon Municipal Airport,Northeast,WI,CNDN,Crandon,crandon,US/Central,2024-10-23T00:00:00Z,142.0,b40ee906-2303-7a4d-2c32-287d980e2207,S7DLA4NRNE
-39,280.0,44.026001,-90.255997,Camp Douglas,Juneau,Cutler Cranberry,Central,WI,CTLR,Cutler,cutler,US/Central,2024-07-16T00:00:00Z,241.0,ced08fb1-544c-c6cd-e062-66e8d1aed8fb,SN63FRIQH5
-29,275.0,44.327999,-87.966003,De Pere,Brown,Calf Source LLC,East Central,WI,DEPR,De Pere,de_pere,US/Central,2024-06-11T00:00:00Z,276.0,018c9f3f-b9ab-433a-f704-26b27fe7c17a,SS6NJR993V
-53,265.0,44.627586,-91.939346,Durand,Pepin,Farm on Dairy,West Central,WI,DRND,Durand,durand,US/Central,2024-10-09T00:00:00Z,156.0,73287b85-5a7a-5a77-de5c-8ae3337aa562,SY37RUNT70
-9,227.0,45.0509,-87.259804,Egg Harbor,Door,Egg Harbor,East Central,WI,EGHA,Egg Harbor,egg_harbor,US/Central,2023-08-18T00:00:00Z,574.0,6ba81f7d-0769-71db-24b9-4b97b774a0a6,S2P6D646U1
-42,345.0,44.609001,-91.0,Fairchild,Eau Claire,Fairchild,Northwest,WI,FRCD,Fairchild,fairchild,US/Central,2024-08-06T00:00:00Z,220.0,1ed8d839-4d74-c919-b0e1-57b076fe3f8e,SL7G29O27W
-32,218.0,43.2981,-87.932098,Grafton,Ozakee,Grafton Little League,East Central,WI,GFTN,Grafton,grafton,US/Central,2024-06-18T00:00:00Z,269.0,ba5aed7c-a3c0-32ca-8a70-106f10eaa45c,SCRF14YQBZ
-20,361.0,44.717999,-90.596603,Greenwood,Clark,Greenwood,North Central,WI,GNWD,Greenwood,greenwood,US/Central,2023-10-17T00:00:00Z,514.0,7910093b-bebb-3671-ed9a-6955be87b585,SPB6FKYDR6
-1,333.0,44.118801,-89.533302,Hancock,Waushara County,Not set,Central,WI,HNCK,Hancock,hancock,US/Central,2023-02-02T00:00:00Z,771.0,869f0010-74ab-3333-1231-059899654bff,SASGYVS2EV
-55,267.0,44.504025,-89.024918,Iola,Waupaca,Central County Airport,Central,WI,IOLA,Iola,iola,US/Central,2024-10-15T00:00:00Z,150.0,acf3a033-72f6-db4f-d05e-579bf048d930,SIXLY2ZRR6
-33,313.0,43.535099,-88.252701,Kewaskum,Kewaskum,Blind Cow Dairy,East Central,WI,KSKM,Kewaskum,kewaskum,US/Central,2024-06-20T00:00:00Z,267.0,51dd93a4-c5e8-72b8-c4bd-3ad9533cb150,S359Q2YKGT
-15,227.0,44.401798,-87.664597,Kewaunee,Kewaunee,Kewaunee,East Central,WI,KWNE,Kewaunee,kewaunee,US/Central,2023-08-24T00:00:00Z,568.0,efb349d0-9aae-8c78-c8d2-ec7e34b46090,SF8AG6HVUQ
-41,511.0,46.289001,-90.435997,Knight,Iron,Crawford Road Gravel Pit,North Central,WI,KNGT,Knight,knight,US/Central,2024-07-25T00:00:00Z,232.0,72e76b04-2c37-b3cc-c749-db802a2c8b94,SEC4G4MK3W
-24,269.0,43.597,-90.625999,La Farge,Vernon,Kickapoo Valley Reserve Visitor Center,Western,WI,LAFG,La Farge,la_farge,US/Central,2024-05-31T00:00:00Z,287.0,52a41fb5-73fe-69a3-c8cd-3dd3c08088c1,SUCV0B72P6
-3,318.0,42.830002,-90.7882,Lancaster,Grant County,Not set,Southwest,WI,LNCT,Lancaster,lancaster,US/Central,2023-02-09T00:00:00Z,764.0,06ac93bb-6ec6-ade4-bb5d-e960a8475159,ST66CXQN1I
-8,217.0,44.556,-87.654297,Casco,Kewaunee,Casco,East Central,WI,LXBG,Luxemburg,luxemburg,US/Central,2023-08-24T00:00:00Z,568.0,4283affc-a369-5643-3086-f80f9b206b37,S5HSIPFFDD
-40,492.0,46.076,-89.838303,Manitowish Waters,Vilas,Bartling&apos;s Manitowish Cranberry Company,North Central,WI,MNWT,Manitowish Waters,manitowish_waters,US/Central,2024-07-24T00:00:00Z,233.0,cc883a41-a799-e25f-e59c-9ef322505e3b,SHLRW18WKI
-52,278.0,46.632702,-91.681198,Maple,Douglas,Anderson Farm,Northwest,WI,MAPL,Maple,maple,US/Central,2024-10-01T00:00:00Z,164.0,9665a937-729e-5404-203e-759b6b36f96b,S46IH3ZJWV
-5,398.0,44.7603,-90.097801,Marshfield,Marathon County,Not set,North Central,WI,MRFD,Marshfield,marshfield,US/Central,2023-02-02T00:00:00Z,771.0,d4870546-4cb5-524f-4fb1-8bb6b53c9178,SXB7VAXY29
-54,410.0,44.401226,-91.559906,,Buffalo,Bragger Family Dairy,West Central,WI,MNTN,Montana,montana,US/Central,2024-10-10T00:00:00Z,155.0,d5039725-17f2-7227-2269-00f6a7855bb9,SFXCQORX9X
-49,257.0,43.853901,-89.283798,Montello,Marquette,Zeb Zuehls Farm,Central,WI,MTLO,Montello,montello,US/Central,2024-09-24T00:00:00Z,171.0,b050294d-e335-7064-51f2-005df56c472a,SREAY70R5R
-14,225.0,44.789398,-87.4561,Nasewaupee,Door,Nasewaupee,East Central,WI,NASE,Nasewaupee,nasewaupee,US/Central,2023-08-17T00:00:00Z,575.0,f3ac3c85-4aac-cea0-afa9-5079c1ebc5d1,S3BWGDUFEO
-37,287.0,42.976002,-88.120003,New Berlin,Waukesha,New Berlin City Hall,Southeast,WI,NBLN,New Berlin,new_berlin,US/Central,2024-07-12T00:00:00Z,245.0,d7a2a984-463a-8596-01e5-d2a6cea25e9c,SF9Z7CQYA7
-43,324.0,44.59,-91.265999,Osseo,Trempealeau,Osseo,West Central,WI,OSEO,Osseo,osseo,US/Central,2024-08-07T00:00:00Z,219.0,05bc8adb-e5b0-ac34-d043-dfd2e1e211d3,SUBISX680X
-34,331.0,44.446098,-89.520699,Plover,Portage,Food and Farm Exploration Center,Central,WI,FFEC,Plover,plover,US/Central,2024-06-26T00:00:00Z,261.0,d510b318-62d7-aa43-67ae-504317b6b2d4,SPR5XBGOVU
-60,252.0,43.777199,-87.9515,Plymouth,Sheboygan,Nick Kleiber Grain,East Central,WI,PLYM,Plymouth,plymouth,US/Central,2024-10-30T00:00:00Z,135.0,ca7deac8-b65f-64b2-7b28-91158588c7d8,SJ6O6MNCU2
-26,282.0,42.789001,-89.172997,Porter,Rock,Gibbs Lake County Park,Southern,WI,GLCP,Porter,porter,US/Central,2024-05-23T00:00:00Z,295.0,6dd9c7fe-9575-bf9c-85ed-8ef746caf88c,S9QOXH4W8Z
-18,258.0,43.344799,-89.7117,Prairie du Sac,Sauk,Prairie du Sac,Southwest,WI,DFRC,Prairie du Sac,prairie_du_sac,US/Central,2023-09-28T00:00:00Z,533.0,1f29af07-9583-9de5-47d8-e15b027d41ce,S864RV5JT0
-2,488.0,45.654598,-89.268204,Rhinelander,Oneida County,Not set,North Central,WI,RNLD,Rhinelander,rhinelander,US/Central,2023-02-02T00:00:00Z,771.0,1a4dbbf4-457e-48cb-17ff-5707f4d651e7,SKVJ7WMFRP
-27,239.0,43.369999,-90.383003,Richland Center,Richland,Richland County Highway Department,Southern,WI,RCHD,Richland Center,richland_center,US/Central,2024-05-30T00:00:00Z,288.0,f0f5f082-3718-3140-cd56-3fa798760094,SQ60X8ITCS
-28,259.0,43.905602,-88.846703,Ripon,Winnebago,Vines and Rushes Winery,East Central,WI,RIPN,Ripon,ripon,US/Central,2024-06-10T00:00:00Z,277.0,03def203-da4a-de81-513c-f93e4c3b1be2,SLKBWBA34X
-11,212.0,45.219101,-87.0662,Sister Bay,Door,Sister Bay,East Central,WI,SIBA,Sister Bay,sister_bay,US/Central,2023-08-18T00:00:00Z,574.0,6e1a24b7-57d3-353f-4e49-51ba8c1d1ada,SBMBAZGNYY
-48,355.0,43.378399,-90.900002,Soldiers Grove,Crawford,Star Valley Flowers,Southwest,WI,STAR,Soldiers Grove,soldiers_grove,US/Central,2024-09-12T00:00:00Z,183.0,1bf2d1e5-58f4-4fa2-d906-ff3b10f7b8d1,SLCZZFSUVX
-51,196.0,42.901299,-87.851196,South Milwaukee,Milwaukee,South Milwaukee Wastewater Treatment Plant,Southeast,WI,SMKE,South Milwaukee,south_milwaukee,US/Central,2024-09-27T00:00:00Z,168.0,6197ce99-389e-74e4-00bb-c5f207df9d54,S9GYM95LWZ
-10,212.0,44.778999,-87.355598,Sturgeon Bay,Door,Sturgeon Bay,East Central,WI,SODO,Southern Door,southern_door,US/Central,2023-08-17T00:00:00Z,575.0,620e4b8f-0057-716b-bcfb-95665eb03803,S0O7S5BUXF
-4,333.0,45.827,-91.861397,Spooner,Washburn County,Not set,Northwest,WI,SPNR,Spooner,spooner,US/Central,2023-02-09T00:00:00Z,764.0,f0eccf6e-b561-fe08-4ffc-3c4a612174d6,SGQXIS2977
-13,220.0,44.880199,-87.329597,Sturgeon Bay,Door,Sturgeon Bay,East Central,WI,PARS,Sturgeon Bay,sturgeon_bay,US/Central,2023-08-17T00:00:00Z,575.0,81c259ae-fcb1-b577-ce46-9e4355a5e00d,S32S795MCD
-56,257.0,44.999001,-88.342697,Suring,Oconto,Mahoney Farms,Northeast,WI,SRNG,Suring,suring,US/Central,2024-10-22T00:00:00Z,143.0,643c7f23-0da6-2fa9-0c47-9f73b588ce49,SCX0KN548O
-6,265.0,42.714008,-84.453499,"East Lansing, MI",,Not set,,MI,MITEST1,Usonia_II,usonia_ii,US/Eastern,2023-07-01T00:00:00Z,622.0,a6f330c1-3e47-8138-7740-ec24df8b6278,SEVW3DA5OJ
-59,247.0,44.004398,-87.8228,Valders,Manitowoc,Libertyland Farms,East Central,WI,VLDR,Valders,valders,US/Central,2024-10-29T00:00:00Z,136.0,e9185d9d-e0e4-0e4e-f956-8cd9b7431791,SWX29T79PF
-17,309.0,43.025002,-89.536697,Verona,Dane,Verona,South Central,WI,OJNR,Verona,verona,US/Central,2023-09-28T00:00:00Z,533.0,5ca8b08c-5fe1-54aa-1a24-495e6e4ee82f,SZ9NKURYCM
-25,292.0,42.527,-88.639999,Walworth,Walworth,Blooming Duda&apos;s Flower Farm,Southeast,WI,DUDA,Walworth,walworth,US/Central,2024-05-22T00:00:00Z,296.0,57813f10-a996-c955-0dfa-ded39e0fd047,SEPQFBCBK1
-35,288.0,44.116699,-90.412102,Warrens,Monroe,Weatherby Cranberry Company,West Central,WI,WRNS,Warrens,warrens,US/Central,2024-07-01T00:00:00Z,256.0,eb075039-5c1b-424b-1d24-b8c1be652a12,S7PFJRZ6AL
-12,220.0,45.009998,-87.233498,West Jacksonport,Door,West Jacksonport,East Central,WI,WJPT,West Jacksonport,west_jacksonport,US/Central,2023-08-18T00:00:00Z,574.0,4e94b407-26d9-a0a8-4770-d7afd5403660,SPBFD11X7A
-22,319.0,43.295399,-89.3582,Arlington,Columbia County,Poultry Barn,South Central,WI,WNTEST1,WiscNetTest,wiscnettest,US/Central,2023-10-22T00:00:00Z,509.0,edaa3c00-47e7-dd4b-51a2-1b65cbfe4c57,SX0PMT6VTR
-58,346.0,44.866001,-89.023552,Wittenberg,Shawano,Strassburg Creek Dairy,Northeast,WI,WTBG,Wittenberg,wittenberg,US/Central,2024-10-23T00:00:00Z,142.0,3ebd88b9-e7aa-8466-aa6a-013187670eb2,SCWRLMUIXM
-16,492.0,45.841,-89.667801,Woodruff,Oneida County,Woodruff,North Central,WI,KEMP,Woodruff,woodruff,US/Central,2023-09-27T00:00:00Z,534.0,bef6d2f3-3f53-e50b-9b5c-7704f38f57d5,S8QF327ICS
-44,347.0,44.943001,-92.287003,Woodville,St. Croix,Viking Middle School,West Central,WI,WDVL,Woodville,woodville,US/Central,2024-08-27T00:00:00Z,199.0,d0d24c6f-9b7d-9364-c0d1-1168ff05b3b3,S9KLFJCB0P
-46,226.0,42.7281,-88.028,Union Grove,Racine,Racine Astronomical Society,Southeast,WI,UGRV,Yorkville,yorkville,US/Central,2024-09-05T00:00:00Z,190.0,efc9f1be-18df-1738-6098-6d035cc3544f,S355RGMPET
+id,campbell_cloud_id,station_id,legacy_id,station_slug,station_name,latitude,longitude,elevation,location,station_timezone,city,county,region,state,earliest_api_date
+47,be41f3c5-db40-4e77-9314-7b64a86bf0bd,ANGO,S0AY9458XB,antigo,Antigo,45.158901,-89.117798,461.0,Langlade County Airport,US/Central,Antigo,Langlade,Northeast,WI,9/11/2024
+7,7a0eb3c4-bcaf-c4f7-c3d2-92e8a9da6b06,ALTN,SLR6NWDRE7,arlington,Arlington,43.2966,-89.3843,304.0,Arlington Agricultural Research Station,US/Central,Arlington,Columbia County,South Central,WI,5/22/2023
+45,2f187f9b-f4fa-d1ad-1123-75e3df29071b,RTHR,S2ELLV2D9Y,arthur,Arthur,45.032001,-91.199997,307.0,Not set,US/Central,Arthur,Chippewa,Northwest,WI,8/28/2024
+36,f45b6cc4-e520-48f8-e9c7-dd4c98579a8f,BBCK,SDHS0YT2M2,babcock,Babcock,44.253799,-90.268997,296.0,Amundson Cranberry Inc,US/Central,Babcock,Wood,Central,WI,7/11/2024
+31,bb5e5c3c-0a51-3958-3dff-6064a0c9b1f9,BLCR,SCQEZRKA6K,black_creek,Black Creek,44.481499,-88.405899,238.0,Fallen Timbers Environmental Center,US/Central,Black Creek,Outagamie,East Central,WI,6/12/2024
+19,9f8a27d9-f8c6-6252-f611-1153cc105957,WCRS,SX7MLEE0G2,black_river_falls,Black River Falls,44.1852,-90.742798,262.0,Black River Falls,US/Central,Black River Falls,Jackson,West Central,WI,10/18/2023
+65,,BGHM,,brigham,Brigham,43.002998,-89.848503,366.0,Thomas Memorial Prairie,US/Central,Brigham,Iowa,Southwest,WI,5/7/2025
+30,9e167efb-fdd6-9ea7-5b88-4e5faeb80620,BRLN,SOVH4DPMII,brillion,Brillion,44.104,-88.051003,253.0,Dallmann East River Dairy LLC,US/Central,Brillion,Calumet,East Central,WI,6/11/2024
+23,a81da783-454f-a278-f3f7-b82ba8265bfc,BSTL,S6HO1L6JBI,bristol,Bristol,42.570999,-88.044998,234.0,Kenosha County Center,US/Central,Bristol,Kenosha,Southeast,WI,4/22/2024
+50,5723db07-3283-67fb-2c8c-3c5a8fce23ec,BKLN,SWV1DQCEJF,brooklyn,Brooklyn,43.838001,-89.030403,271.0,Brooklyn,US/Central,Brooklyn,Green Lake,Central,WI,9/25/2024
+38,87b71cdc-06b1-fe6c-6721-a94b5021a9ae,CLLK,S21BCEXFYO,clear_lake,Clear Lake,45.285801,-92.321297,341.0,Bull Brook Keep,US/Central,Clear Lake,Polk,Northwest,WI,7/17/2024
+21,26790b04-dbdc-b082-e995-1f25fe466a28,COSP,SKF58LYJ1S,cold_spring,Cold Spring,42.898701,-88.737198,241.0,Cold Spring,US/Central,Cold Spring,Jefferson,South Central,WI,10/19/2023
+57,b40ee906-2303-7a4d-2c32-287d980e2207,CNDN,S7DLA4NRNE,crandon,Crandon,45.522598,-88.923897,495.0,Crandon Municipal Airport,US/Central,Crandon,Forest,Northeast,WI,10/23/2024
+39,ced08fb1-544c-c6cd-e062-66e8d1aed8fb,CTLR,SN63FRIQH5,cutler,Cutler,44.026001,-90.255997,280.0,Cutler Cranberry,US/Central,Camp Douglas,Juneau,Central,WI,7/16/2024
+69,,DLTN,,darlington,Darlington,42.649902,-90.289154,327.0,Darlington Ridge Dairy,US/Central,Darlington,Lafayette,Southwest,WI,05/29/2025
+29,018c9f3f-b9ab-433a-f704-26b27fe7c17a,DEPR,SS6NJR993V,de_pere,De Pere,44.327999,-87.966003,275.0,Calf Source LLC,US/Central,De Pere,Brown,East Central,WI,6/11/2024
+53,73287b85-5a7a-5a77-de5c-8ae3337aa562,DRND,SY37RUNT70,durand,Durand,44.627586,-91.939346,265.0,Farm on Dairy,US/Central,Durand,Pepin,West Central,WI,10/9/2024
+9,6ba81f7d-0769-71db-24b9-4b97b774a0a6,EGHA,S2P6D646U1,egg_harbor,Egg Harbor,45.0509,-87.259804,227.0,Egg Harbor,US/Central,Egg Harbor,Door,East Central,WI,8/18/2023
+42,1ed8d839-4d74-c919-b0e1-57b076fe3f8e,FRCD,SL7G29O27W,fairchild,Fairchild,44.609001,-91.0,345.0,Fairchild,US/Central,Fairchild,Eau Claire,Northwest,WI,8/6/2024
+32,ba5aed7c-a3c0-32ca-8a70-106f10eaa45c,GFTN,SCRF14YQBZ,grafton,Grafton,43.2981,-87.932098,218.0,Grafton Little League,US/Central,Grafton,Ozakee,East Central,WI,6/18/2024
+20,7910093b-bebb-3671-ed9a-6955be87b585,GNWD,SPB6FKYDR6,greenwood,Greenwood,44.717999,-90.596603,361.0,Greenwood,US/Central,Greenwood,Clark,North Central,WI,10/17/2023
+1,869f0010-74ab-3333-1231-059899654bff,HNCK,SASGYVS2EV,hancock,Hancock,44.118801,-89.533302,333.0,Not set,US/Central,Hancock,Waushara County,Central,WI,2/2/2023
+55,acf3a033-72f6-db4f-d05e-579bf048d930,IOLA,SIXLY2ZRR6,iola,Iola,44.504025,-89.024918,267.0,Central County Airport,US/Central,Iola,Waupaca,Central,WI,10/15/2024
+33,51dd93a4-c5e8-72b8-c4bd-3ad9533cb150,KSKM,S359Q2YKGT,kewaskum,Kewaskum,43.535099,-88.252701,313.0,Blind Cow Dairy,US/Central,Kewaskum,Kewaskum,East Central,WI,6/20/2024
+15,efb349d0-9aae-8c78-c8d2-ec7e34b46090,KWNE,SF8AG6HVUQ,kewaunee,Kewaunee,44.401798,-87.664597,227.0,Kewaunee,US/Central,Kewaunee,Kewaunee,East Central,WI,8/24/2023
+41,72e76b04-2c37-b3cc-c749-db802a2c8b94,KNGT,SEC4G4MK3W,knight,Knight,46.289001,-90.435997,511.0,Crawford Road Gravel Pit,US/Central,Knight,Iron,North Central,WI,7/25/2024
+24,52a41fb5-73fe-69a3-c8cd-3dd3c08088c1,LAFG,SUCV0B72P6,la_farge,La Farge,43.597,-90.625999,269.0,Kickapoo Valley Reserve Visitor Center,US/Central,La Farge,Vernon,Western,WI,5/31/2024
+3,06ac93bb-6ec6-ade4-bb5d-e960a8475159,LNCT,ST66CXQN1I,lancaster,Lancaster,42.830002,-90.7882,318.0,Not set,US/Central,Lancaster,Grant County,Southwest,WI,2/9/2023
+62,,LOLK,,lost_lake,Lost Lake,43.451145,-88.977783,287.0,Macheel Farms,US/Central,Lost Lake,Dodge,South Central,WI,4/23/2025
+8,4283affc-a369-5643-3086-f80f9b206b37,LXBG,S5HSIPFFDD,luxemburg,Luxemburg,44.556,-87.654297,217.0,Casco,US/Central,Casco,Kewaunee,East Central,WI,8/24/2023
+40,cc883a41-a799-e25f-e59c-9ef322505e3b,MNWT,SHLRW18WKI,manitowish_waters,Manitowish Waters,46.076,-89.838303,492.0,Bartling&apos;s Manitowish Cranberry Company,US/Central,Manitowish Waters,Vilas,North Central,WI,7/24/2024
+52,9665a937-729e-5404-203e-759b6b36f96b,MAPL,S46IH3ZJWV,maple,Maple,46.632702,-91.681198,278.0,Anderson Farm,US/Central,Maple,Douglas,Northwest,WI,10/1/2024
+5,d4870546-4cb5-524f-4fb1-8bb6b53c9178,MRFD,SXB7VAXY29,marshfield,Marshfield,44.7603,-90.097801,398.0,Not set,US/Central,Marshfield,Marathon County,North Central,WI,2/2/2023
+54,d5039725-17f2-7227-2269-00f6a7855bb9,MNTN,SFXCQORX9X,montana,Montana,44.401226,-91.559906,410.0,Bragger Family Dairy,US/Central,,Buffalo,West Central,WI,10/10/2024
+49,b050294d-e335-7064-51f2-005df56c472a,MTLO,SREAY70R5R,montello,Montello,43.853901,-89.283798,257.0,Zeb Zuehls Farm,US/Central,Montello,Marquette,Central,WI,9/24/2024
+14,f3ac3c85-4aac-cea0-afa9-5079c1ebc5d1,NASE,S3BWGDUFEO,nasewaupee,Nasewaupee,44.789398,-87.4561,225.0,Nasewaupee,US/Central,Nasewaupee,Door,East Central,WI,8/17/2023
+37,d7a2a984-463a-8596-01e5-d2a6cea25e9c,NBLN,SF9Z7CQYA7,new_berlin,New Berlin,42.976002,-88.120003,287.0,New Berlin City Hall,US/Central,New Berlin,Waukesha,Southeast,WI,7/12/2024
+43,05bc8adb-e5b0-ac34-d043-dfd2e1e211d3,OSEO,SUBISX680X,osseo,Osseo,44.59,-91.265999,324.0,Osseo,US/Central,Osseo,Trempealeau,West Central,WI,8/7/2024
+34,d510b318-62d7-aa43-67ae-504317b6b2d4,FFEC,SPR5XBGOVU,plover,Plover,44.446098,-89.520699,331.0,Food and Farm Exploration Center,US/Central,Plover,Portage,Central,WI,6/26/2024
+60,ca7deac8-b65f-64b2-7b28-91158588c7d8,PLYM,SJ6O6MNCU2,plymouth,Plymouth,43.777199,-87.9515,252.0,Nick Kleiber Grain,US/Central,Plymouth,Sheboygan,East Central,WI,10/30/2024
+26,6dd9c7fe-9575-bf9c-85ed-8ef746caf88c,GLCP,S9QOXH4W8Z,porter,Porter,42.789001,-89.172997,282.0,Gibbs Lake County Park,US/Central,Porter,Rock,Southern,WI,5/23/2024
+18,1f29af07-9583-9de5-47d8-e15b027d41ce,DFRC,S864RV5JT0,prairie_du_sac,Prairie du Sac,43.344799,-89.7117,258.0,Prairie du Sac,US/Central,Prairie du Sac,Sauk,Southwest,WI,9/28/2023
+2,1a4dbbf4-457e-48cb-17ff-5707f4d651e7,RNLD,SKVJ7WMFRP,rhinelander,Rhinelander,45.654598,-89.268204,488.0,Not set,US/Central,Rhinelander,Oneida County,North Central,WI,2/2/2023
+27,f0f5f082-3718-3140-cd56-3fa798760094,RCHD,SQ60X8ITCS,richland_center,Richland Center,43.369999,-90.383003,239.0,Richland County Highway Department,US/Central,Richland Center,Richland,Southern,WI,5/30/2024
+28,03def203-da4a-de81-513c-f93e4c3b1be2,RIPN,SLKBWBA34X,ripon,Ripon,43.905602,-88.846703,259.0,Vines and Rushes Winery,US/Central,Ripon,Winnebago,East Central,WI,6/10/2024
+68,,SHGD,,shanagolden,Shanagolden,46.10701,-90.80793,454.0,East Flambeau Dream Site,US/Central,Shanagolden,Ashland,North Central,WI,05/28/2025
+11,6e1a24b7-57d3-353f-4e49-51ba8c1d1ada,SIBA,SBMBAZGNYY,sister_bay,Sister Bay,45.219101,-87.0662,212.0,Sister Bay,US/Central,Sister Bay,Door,East Central,WI,8/18/2023
+48,1bf2d1e5-58f4-4fa2-d906-ff3b10f7b8d1,STAR,SLCZZFSUVX,soldiers_grove,Soldiers Grove,43.378399,-90.900002,355.0,Star Valley Flowers,US/Central,Soldiers Grove,Crawford,Southwest,WI,9/12/2024
+51,6197ce99-389e-74e4-00bb-c5f207df9d54,SMKE,S9GYM95LWZ,south_milwaukee,South Milwaukee,42.901299,-87.851196,196.0,South Milwaukee Wastewater Treatment Plant,US/Central,South Milwaukee,Milwaukee,Southeast,WI,9/27/2024
+10,620e4b8f-0057-716b-bcfb-95665eb03803,SODO,S0O7S5BUXF,southern_door,Southern Door,44.778999,-87.355598,212.0,Sturgeon Bay,US/Central,Sturgeon Bay,Door,East Central,WI,8/17/2023
+4,f0eccf6e-b561-fe08-4ffc-3c4a612174d6,SPNR,SGQXIS2977,spooner,Spooner,45.827,-91.861397,333.0,Not set,US/Central,Spooner,Washburn County,Northwest,WI,2/9/2023
+13,81c259ae-fcb1-b577-ce46-9e4355a5e00d,PARS,S32S795MCD,sturgeon_bay,Sturgeon Bay,44.880199,-87.329597,220.0,Sturgeon Bay,US/Central,Sturgeon Bay,Door,East Central,WI,8/17/2023
+56,643c7f23-0da6-2fa9-0c47-9f73b588ce49,SRNG,SCX0KN548O,suring,Suring,44.999001,-88.342697,257.0,Mahoney Farms,US/Central,Suring,Oconto,Northeast,WI,10/22/2024
+64,,TCDA,,taycheedah,Taycheedah,43.84317,-88.370872,258.0,Park Ridge Organics,US/Central,Taycheedah,Fond du Lac,East Central,WI,4/23/2025
+6,a6f330c1-3e47-8138-7740-ec24df8b6278,MITEST1,SEVW3DA5OJ,usonia_ii,Usonia_II,42.714008,-84.453499,265.0,Not set,US/Eastern,"East Lansing, MI",,,MI,7/1/2023
+59,e9185d9d-e0e4-0e4e-f956-8cd9b7431791,VLDR,SWX29T79PF,valders,Valders,44.004398,-87.8228,247.0,Libertyland Farms,US/Central,Valders,Manitowoc,East Central,WI,10/29/2024
+17,5ca8b08c-5fe1-54aa-1a24-495e6e4ee82f,OJNR,SZ9NKURYCM,verona,Verona,43.025002,-89.536697,309.0,Verona,US/Central,Verona,Dane,South Central,WI,9/28/2023
+25,57813f10-a996-c955-0dfa-ded39e0fd047,DUDA,SEPQFBCBK1,walworth,Walworth,42.527,-88.639999,292.0,Blooming Duda&apos;s Flower Farm,US/Central,Walworth,Walworth,Southeast,WI,5/22/2024
+35,eb075039-5c1b-424b-1d24-b8c1be652a12,WRNS,S7PFJRZ6AL,warrens,Warrens,44.116699,-90.412102,288.0,Weatherby Cranberry Company,US/Central,Warrens,Monroe,West Central,WI,7/1/2024
+12,4e94b407-26d9-a0a8-4770-d7afd5403660,WJPT,SPBFD11X7A,west_jacksonport,West Jacksonport,45.009998,-87.233498,220.0,West Jacksonport,US/Central,West Jacksonport,Door,East Central,WI,8/18/2023
+22,edaa3c00-47e7-dd4b-51a2-1b65cbfe4c57,WNTEST1,SX0PMT6VTR,wiscnettest,WiscNetTest,43.295399,-89.3582,319.0,Poultry Barn,US/Central,Arlington,Columbia County,South Central,WI,10/22/2023
+58,3ebd88b9-e7aa-8466-aa6a-013187670eb2,WTBG,SCWRLMUIXM,wittenberg,Wittenberg,44.866001,-89.023552,346.0,Strassburg Creek Dairy,US/Central,Wittenberg,Shawano,Northeast,WI,10/23/2024
+16,bef6d2f3-3f53-e50b-9b5c-7704f38f57d5,KEMP,S8QF327ICS,woodruff,Woodruff,45.841,-89.667801,492.0,Woodruff,US/Central,Woodruff,Oneida County,North Central,WI,9/27/2023
+44,d0d24c6f-9b7d-9364-c0d1-1168ff05b3b3,WDVL,S9KLFJCB0P,woodville,Woodville,44.943001,-92.287003,347.0,Viking Middle School,US/Central,Woodville,St. Croix,West Central,WI,8/27/2024
+46,efc9f1be-18df-1738-6098-6d035cc3544f,UGRV,S355RGMPET,yorkville,Yorkville,42.7281,-88.028,226.0,Racine Astronomical Society,US/Central,Union Grove,Racine,Southeast,WI,9/5/2024
+67,,WBRO,,westboro,westboro,45.31929,-90.355469,506.0,We Grow Foods,US/Central,westboro,taylor,North Central,WI,05/13/2025
