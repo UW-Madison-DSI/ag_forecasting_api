@@ -1,7 +1,8 @@
 # Open Source Agricultural Forecasting API
 
 ## Citation
-[![DOI](10.5281/zenodo.17459877)
+
+[![DOI](https://zenodo.org/badge/837313087.svg)](https://doi.org/10.5281/zenodo.17459876)
 
 ## About
 
