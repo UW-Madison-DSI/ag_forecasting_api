@@ -1,5 +1,10 @@
 # Open Source Agricultural Forecasting API
 
+## Citation
+[DOI](10.5281/zenodo.17459877)
+
+## About
+
 This API provides access to crop disease models developed by the University of wisconesin Madison experts in plant pathology. The API uses a FastAPI-based backend and integrates weather station data from public and private sources, including mesonet weather stations and IBM Environmental Intelligence. It also supports querying Wisconet by a wrapper built in top of it in a custom way. 
 [API](https://ag-forecasting-api.services.dsi.wisc.edu/)
 
