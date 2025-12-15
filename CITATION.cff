@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "Please cite this work when using the software."
+type: software
+title: "Soybean Whitemold ROI"
+authors:
+  - family-names: "Smith"
+    given-names: "Damon"
+    orcid: "https://orcid.org/0000-0003-3436-3718"
+    affiliation: "UW-Madison"
+  - family-names: "Oros"
+    given-names: "Maria"
+    orcid: "https://orcid.org/0009-0006-2067-4063"
+    affiliation: "UW-Madison"
+  - family-names: "Iain"
+    given-names: "McConell"
+    orcid: "https://orcid.org/0000-0002-9982-7088"
+    affiliation: "UW-Madison"
+repository-code: "https://github.com/UW-Madison-DSI/ag_forecasting_api.git"
+license: "MIT"
+keywords:
+  - open source
+  - forecasting-tools
+  - fungicide
+  - agriculture
