@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: "Please cite this work when using the software."
 type: software
-title: "Ag Forecasting API"
+title: "Soybean ROI tool"
 authors:
   - family-names: "Oros"
     given-names: "Maria"
@@ -11,7 +11,7 @@ authors:
     given-names: "Damon"
     orcid: "https://orcid.org/0000-0003-3436-3718"
     affiliation: "UW-Madison"
-  - family-names: "McConell"
+  - family-names: "McConnel"
     given-names: "Iain"
     orcid: "https://orcid.org/0000-0002-9982-7088"
     affiliation: "UW-Madison"
@@ -21,7 +21,8 @@ license: "MIT"
 keywords:
   - open source
   - forecasting-tools
+  - fungicide
   - agriculture
-  - crop disease
-version: "1.0.0"
-date-released: "2025-12-15"
+# recommended:
+# version: "0.1.0"
+# date-released: "2025-12-15"
