@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: "Please cite this work when using the software."
 type: software
-title: "Soybean Whitemold ROI"
+title: "Open Source Crop Disease Forecasting Tools"
 authors:
   - family-names: "Smith"
     given-names: "Damon"
