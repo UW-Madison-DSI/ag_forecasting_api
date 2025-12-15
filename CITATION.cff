@@ -11,14 +11,18 @@ authors:
     given-names: "Maria"
     orcid: "https://orcid.org/0009-0006-2067-4063"
     affiliation: "UW-Madison"
-  - family-names: "Iain"
-    given-names: "McConell"
+  - family-names: "McConell"
+    given-names: "Iain"
     orcid: "https://orcid.org/0000-0002-9982-7088"
     affiliation: "UW-Madison"
-repository-code: "https://github.com/UW-Madison-DSI/ag_forecasting_api.git"
+repository-code: "https://github.com/UW-Madison-DSI/ag_forecasting_api"
+url: "https://github.com/UW-Madison-DSI/ag_forecasting_api"
 license: "MIT"
 keywords:
   - open source
   - forecasting-tools
   - fungicide
   - agriculture
+# recommended:
+# version: "0.1.0"
+# date-released: "2025-12-15"
