@@ -1,0 +1,49 @@
+{
+  "title": "Soybean ROI tool",
+  "upload_type": "software",
+  "description": "The purpose of this API is to serve as the backend of crop disease forecasting inferences based on real-time weather data from Wisconet weather stations.",
+  "creators": [
+    {
+      "name": "Maria Oros",
+      "affiliation": "UW-Madison",
+      "orcid": "https://orcid.org/0009-0006-2067-4063"
+    },
+    {
+      "name": "Damon Smith",
+      "affiliation": "UW-Madison",
+      "orcid": "https://orcid.org/0000-0003-3436-3718"
+    },
+    {
+      "name": "Iain McConel",
+      "affiliation": "UW-Madison",
+      "orcid": "https://orcid.org/0000-0002-9982-7088"
+    }
+  ],
+  "grants": [
+  ],
+  "contributors": [
+    {
+      "name": "University of Wisconsin - Data Science Institute",
+      "affiliation": "University of Wisconsin - Madison",
+      "type": "HostingInstitution"
+    }
+  ],
+  "license": {
+    "id": "MIT"
+  },
+  
+  "keywords": [
+    "data science",
+    "forecasting",
+    "open source software",
+    "University of Wisconsin",
+    "UW-DSI"
+  ],
+  "notes": "This record was automatically generated via Zenodo–GitHub integration for the University of Wisconsin – Data Science Institute.",
+  "communities": [
+    { "identifier": "university-of-wisconsin-data-science-institute" }
+  ],
+  "contact_email": "research@datascience.wisc.edu",
+  "version": "v1.0.0",
+  "language": "eng"
+}
