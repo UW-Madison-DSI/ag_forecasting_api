@@ -25,7 +25,7 @@ BATCH_SIZE = 20
 BASE_URL = "https://wisconet.wisc.edu/api/v1"
 MIN_DAYS_ACTIVE = 38
 
-MEASUREMENTS_CACHE_DIR = "station_measurements_cache"
+MEASUREMENTS_CACHE_DIR = os.getenv("MEASUREMENTS_CACHE_DIR", "station_measurements_cache")
 os.makedirs(MEASUREMENTS_CACHE_DIR, exist_ok=True)
 
 STATIONS_CACHE_FILE = "wisconsin_stations_cache.csv"
