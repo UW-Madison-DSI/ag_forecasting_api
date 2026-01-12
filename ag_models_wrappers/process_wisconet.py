@@ -8,7 +8,7 @@ import os
 import pickle
 import traceback
 from datetime import datetime, timedelta
-from concurrent.futures import ProcessPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from ag_models_wrappers.forecasting_models import (
     calculate_tarspot_risk_function,
     calculate_gray_leaf_spot_risk_function,
@@ -325,7 +325,7 @@ async def retrieve_tarspot_all_stations_async(input_date, input_station_id=None,
 
             # 5) Compute risks in parallel
             chunks = chunk_dataframe(merged, os.cpu_count() or 1)
-            with ProcessPoolExecutor() as exe:
+            with ThreadPoolExecutor() as exe:
                 futures = [exe.submit(compute_risks, c) for c in chunks]
                 processed = [f.result() for f in as_completed(futures)]
             final = pd.concat(processed, ignore_index=True)
