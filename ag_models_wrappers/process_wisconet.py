@@ -8,7 +8,7 @@ import os
 import pickle
 import traceback
 from datetime import datetime, timedelta
-from concurrent.futures import ProcessPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from ag_models_wrappers.forecasting_models import (
     calculate_tarspot_risk_function,
     calculate_gray_leaf_spot_risk_function,
@@ -25,10 +25,10 @@ BATCH_SIZE = 20
 BASE_URL = "https://wisconet.wisc.edu/api/v1"
 MIN_DAYS_ACTIVE = 38
 
-MEASUREMENTS_CACHE_DIR = "station_measurements_cache"
+MEASUREMENTS_CACHE_DIR = os.getenv("MEASUREMENTS_CACHE_DIR", "station_measurements_cache")
 os.makedirs(MEASUREMENTS_CACHE_DIR, exist_ok=True)
 
-STATIONS_CACHE_FILE = "wisconsin_stations_cache.csv"
+STATIONS_CACHE_FILE = os.getenv("STATIONS_CACHE_FILE", "wisconsin_stations_cache.csv")
 CACHE_EXPIRY_DAYS = 7
 STATIONS_TO_EXCLUDE = ['MITEST1', 'WNTEST1']
 
@@ -286,7 +286,7 @@ async def retrieve_tarspot_all_stations_async(input_date, input_station_id=None,
             # 1) Load or fetch station list, with caching
             stations = None
 
-            if today.day == 1:
+            if today.day == 1 or not os.path.exists(STATIONS_CACHE_FILE):
                 url = f"https://api.wisconet.wisc.edu/api/v1/stations/"
                 async with session.get(url) as resp:
                     if resp.status == 200:
@@ -303,7 +303,7 @@ async def retrieve_tarspot_all_stations_async(input_date, input_station_id=None,
                         stations.to_csv(STATIONS_CACHE_FILE, index=False)
                     else:
                         stations= None
-            if today.day!=1 or stations==None:
+            if stations is None:
                 stations = pd.read_csv(STATIONS_CACHE_FILE)
 
             station_ids = stations['station_id'].tolist()
@@ -325,7 +325,7 @@ async def retrieve_tarspot_all_stations_async(input_date, input_station_id=None,
 
             # 5) Compute risks in parallel
             chunks = chunk_dataframe(merged, os.cpu_count() or 1)
-            with ProcessPoolExecutor() as exe:
+            with ThreadPoolExecutor() as exe:
                 futures = [exe.submit(compute_risks, c) for c in chunks]
                 processed = [f.result() for f in as_completed(futures)]
             final = pd.concat(processed, ignore_index=True)
