@@ -86,6 +86,7 @@ def get_ibm_weather(lat, lng, start_date, end_date,
     '''
     #org_id, tenant_id, current_api_key
     jwt = retrieve_saascore_api_key(ORG_ID, TENANT_ID, API_KEY)
+    print('------>> ',jwt)
 
     url = 'https://api.ibm.com/geospatial/run/v3/wx/hod/r1/direct'
     headers = {
@@ -105,13 +106,15 @@ def get_ibm_weather(lat, lng, start_date, end_date,
                 "units": "m"
             }
             response = requests.get(url, headers=headers, params=params)
+            print(response.status_code)
             if response.status_code == 200:
                 data = response.json()
                 all_data.append(pd.DataFrame(data))
             else:
-                print(f"---- Failed to fetch data for {start} to {end}")
+                print(f"{response.status_code} status code ---- Failed to fetch data")
 
         return pd.concat(all_data, ignore_index=True) if all_data else pd.DataFrame()
+
     except Exception as e:
         print('-------- Exception ',e)
         return None
