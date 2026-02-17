@@ -14,7 +14,8 @@ from ag_models_wrappers.forecasting_models import (
     calculate_frogeye_leaf_spot_function,
     calculate_irrigated_risk,
     calculate_non_irrigated_risk,
-    fahrenheit_to_celsius
+    fahrenheit_to_celsius,
+    cereal_rye_report,          # ← needed for biomass risk classification
 )
 
 import logging
@@ -29,6 +30,9 @@ MIN_DAYS_ACTIVE = 38
 
 MEASUREMENTS_CACHE_DIR = "station_measurements_cache"
 os.makedirs(MEASUREMENTS_CACHE_DIR, exist_ok=True)
+
+BIOMASS_CACHE_DIR = "station_biomass_cache"
+os.makedirs(BIOMASS_CACHE_DIR, exist_ok=True)
 
 STATIONS_CACHE_FILE = "wisconsin_stations_cache.csv"
 STATIONS_TO_EXCLUDE = ['MITEST1', 'WNTEST1']
@@ -57,7 +61,10 @@ FINAL_COLUMNS = [
     'tarspot_risk', 'tarspot_risk_class', 'gls_risk', 'gls_risk_class',
     'fe_risk', 'fe_risk_class', 'whitemold_nirr_risk', 'whitemold_nirr_risk_class',
     'whitemold_irr_30in_risk', 'whitemold_irr_15in_risk',
-    'whitemold_irr_15in_class', 'whitemold_irr_30in_class'
+    'whitemold_irr_15in_class', 'whitemold_irr_30in_class',
+    # ── Biomass (only present when planting_date / termination_date are supplied) ──
+    'cgdd_60d_ap', 'rain_60d_ap', 'cgdd_60d_bt',
+    'biomass_lb_acre', 'biomass_color', 'biomass_message',
 ]
 
 # ─── Helper Functions ─────────────────────────────────────────────────────────
@@ -79,10 +86,7 @@ async def api_call_with_retry(session, url, params, max_retries=3):
 
 def get_async_session():
     """
-    BUG FIX: Was declared as `async def`, which meant callers got a coroutine
-    instead of a session object. It's a plain factory — no async needed here.
-    The actual session is created and managed with `async with` inside the
-    async functions that need it.
+    Plain factory (not async) — callers use `async with get_async_session() as session`.
     """
     return aiohttp.ClientSession(
         connector=aiohttp.TCPConnector(limit=50, ttl_dns_cache=300),
@@ -90,11 +94,9 @@ def get_async_session():
     )
 
 
+# ─── Disease-risk measurements ────────────────────────────────────────────────
+
 async def api_call_wisconet_data_async(session, station_id, end_time):
-    """
-    BUG FIX: Was calling /latest_measures which doesn't support a date range.
-    Switched to /measures (the correct bulk endpoint) so historical dates work.
-    """
     try:
         end_dt   = datetime.strptime(end_time, "%Y-%m-%d")
         start_dt = end_dt - timedelta(days=MIN_DAYS_ACTIVE)
@@ -107,7 +109,7 @@ async def api_call_wisconet_data_async(session, station_id, end_time):
 
         payload = await api_call_with_retry(
             session,
-            f"{BASE_URL}/stations/{station_id}/measures",  # fixed endpoint
+            f"{BASE_URL}/stations/{station_id}/measures",
             params
         )
         data = payload.get("data", []) if payload else []
@@ -124,7 +126,6 @@ async def api_call_wisconet_data_async(session, station_id, end_time):
               .dt.tz_convert('US/Central')
         )
 
-        # Extract individual measure values from the nested measures list
         for mid, col in {
             2:  "60min_air_temp_f_avg",
             10: "60min_dew_point_f_avg",
@@ -214,6 +215,103 @@ async def process_stations_in_batches(session, station_ids, input_date, days):
     return results or None
 
 
+# ─── Biomass measurements ─────────────────────────────────────────────────────
+
+async def fetch_biomass_data_async(session, station_id, planting_date, termination_date):
+    """
+    Fetch daily temp + rainfall between planting_date and termination_date,
+    compute the three inputs needed by cereal_rye_report(), then call it so
+    the biomass estimate and classification travel together as one record.
+
+    Measure IDs used:
+      3  → daily_air_temp_f_avg
+      15 → daily_rain_in_tot
+    """
+    try:
+        start_dt = datetime.strptime(planting_date, "%Y-%m-%d")
+        end_dt   = datetime.strptime(termination_date, "%Y-%m-%d")
+
+        params = {
+            "start_time": int(start_dt.timestamp()),
+            "end_time":   int(end_dt.timestamp()),
+            "fields":     "daily_air_temp_f_avg,daily_rain_in_tot"
+        }
+
+        payload = await api_call_with_retry(
+            session,
+            f"{BASE_URL}/stations/{station_id}/measures",
+            params
+        )
+        data = payload.get("data", []) if payload else []
+        if not data:
+            return None
+
+        df = pd.DataFrame(data)
+
+        df['temp_avg_f'] = df['measures'].apply(
+            lambda m: next((v for (i, v) in m if i == 3), np.nan)
+        )
+        df['rain_in'] = df['measures'].apply(
+            lambda m: next((v for (i, v) in m if i == 15), np.nan)
+        )
+
+        df['collection_time'] = pd.to_datetime(df['collection_time'], unit='s')
+        df = df.sort_values('collection_time')
+
+        # 1. CGDD and rainfall for the first 60 days after planting
+        day_60_mark  = start_dt + timedelta(days=60)
+        df_60d       = df[df['collection_time'] <= day_60_mark]
+        cgdd_60d_ap  = float((df_60d['temp_avg_f'] - 32).clip(lower=0).sum())
+        rain_60d_ap  = float(df_60d['rain_in'].sum())
+
+        # 2. CGDD for the 30-day window before termination
+        bt_start    = end_dt - timedelta(days=30)
+        df_bt       = df[df['collection_time'] >= bt_start]
+        cgdd_60d_bt = float((df_bt['temp_avg_f'] - 32).clip(lower=0).sum())
+
+        # 3. Run the biomass model so risk classification is co-located with the data
+        report = cereal_rye_report(cgdd_60d_ap, rain_60d_ap, cgdd_60d_bt)
+
+        return {
+            "station_id":      station_id,
+            "cgdd_60d_ap":     cgdd_60d_ap,
+            "rain_60d_ap":     rain_60d_ap,
+            "cgdd_60d_bt":     cgdd_60d_bt,
+            "biomass_lb_acre": report["biomass"],
+            "biomass_color":   report["color"],
+            "biomass_message": report["message"],
+        }
+
+    except Exception as e:
+        logging.error(f"Biomass fetch failed for {station_id}: {e}")
+        return None
+
+
+async def process_biomass_in_batches(session, station_ids, planting_date, termination_date):
+    """
+    Fetch biomass data for all stations in BATCH_SIZE chunks,
+    mirroring process_stations_in_batches for consistent rate-limit behaviour.
+    Returns a DataFrame or None.
+    """
+    results = []
+    for i in range(0, len(station_ids), BATCH_SIZE):
+        batch     = station_ids[i:i + BATCH_SIZE]
+        tasks     = [
+            fetch_biomass_data_async(session, sid, planting_date, termination_date)
+            for sid in batch
+        ]
+        batch_out = await asyncio.gather(*tasks)
+        results.extend([r for r in batch_out if r is not None])
+        if i + BATCH_SIZE < len(station_ids):
+            await asyncio.sleep(0.5)
+
+    if not results:
+        return None
+    return pd.DataFrame(results)
+
+
+# ─── Risk computation ─────────────────────────────────────────────────────────
+
 def compute_risks(df_chunk):
     df = df_chunk.copy()
 
@@ -293,18 +391,9 @@ def chunk_dataframe(df, num_chunks):
     return [df.iloc[i:i + size] for i in range(0, n, size)]
 
 
-async def _load_stations(session, input_date: str) -> pd.DataFrame | None:
-    """
-    BUG FIX: The original code used `today.day == 32` (never true!) and
-    `today.day == 1` (only refreshes once a month) as conditions to fetch
-    fresh station data. This meant the cache file was almost never written
-    and always expected to exist already.
+# ─── Station loader ───────────────────────────────────────────────────────────
 
-    New logic:
-      - Always try to read from the cache file first.
-      - If the cache is missing OR older than 7 days, fetch from the API
-        and write a fresh cache.
-    """
+async def _load_stations(session, input_date: str) -> pd.DataFrame | None:
     cache_stale = True
     if os.path.exists(STATIONS_CACHE_FILE):
         age_days = (
@@ -322,7 +411,6 @@ async def _load_stations(session, input_date: str) -> pd.DataFrame | None:
     async with session.get(url) as resp:
         if resp.status != 200:
             logging.error(f"Station API returned {resp.status}")
-            # Fall back to stale cache if it exists
             if os.path.exists(STATIONS_CACHE_FILE):
                 return pd.read_csv(STATIONS_CACHE_FILE)
             return None
@@ -343,20 +431,15 @@ async def _load_stations(session, input_date: str) -> pd.DataFrame | None:
     return stations
 
 
-async def retrieve_tarspot_all_stations_async(input_date, input_station_id=None, days=1):
-    """
-    BUG FIX SUMMARY vs original:
-      1. get_async_session() is now a plain function (not async def), so
-         `async with get_async_session() as session` works correctly.
-      2. Station loading logic (`today.day == 32` / `today.day == 1`) replaced
-         with time-based cache in `_load_stations()`.
-      3. The massive duplicated block of code pasted inside the `if today.day == 32`
-         branch (lines ~298-650 of original) has been removed entirely.
-      4. `result_type='expand'` replaced with proper pd.Series returns so
-         column assignment doesn't silently produce wrong shapes.
-      5. NaN guard added to risk checks (`pd.isna(...)`) so rows with
-         insufficient rolling-window data don't crash.
-    """
+# ─── Main async pipeline ──────────────────────────────────────────────────────
+
+async def retrieve_tarspot_all_stations_async(
+    input_date,
+    input_station_id=None,
+    days=1,
+    planting_date=None,       # e.g. "2024-04-15"  — biomass only
+    termination_date=None,    # e.g. "2024-07-01"  — biomass only
+):
     try:
         async with get_async_session() as session:
 
@@ -375,8 +458,19 @@ async def retrieve_tarspot_all_stations_async(input_date, input_station_id=None,
 
             station_ids = stations['station_id'].tolist()
 
-            # 3) Fetch measurements
-            dfs = await process_stations_in_batches(session, station_ids, input_date, days)
+            # 3) Fetch disease-risk measurements AND biomass data concurrently.
+            #    Biomass is only fetched when both crop dates are provided.
+            run_biomass = bool(planting_date and termination_date)
+
+            if run_biomass:
+                dfs, biomass_df = await asyncio.gather(
+                    process_stations_in_batches(session, station_ids, input_date, days),
+                    process_biomass_in_batches(session, station_ids, planting_date, termination_date),
+                )
+            else:
+                dfs        = await process_stations_in_batches(session, station_ids, input_date, days)
+                biomass_df = None
+
             if not dfs:
                 logging.warning("No measurement data returned.")
                 return None
@@ -393,20 +487,35 @@ async def retrieve_tarspot_all_stations_async(input_date, input_station_id=None,
                 logging.warning("Merge produced empty DataFrame.")
                 return None
 
-            # 5) Compute risks (parallel for large datasets)
+            # 5) Merge biomass data.
+            #    Left join → stations with failed biomass fetches keep NaN
+            #    rather than being silently dropped from the output.
+            if biomass_df is not None and not biomass_df.empty:
+                merged = pd.merge(merged, biomass_df, on='station_id', how='left')
+                logging.info(
+                    f"Biomass data merged for {biomass_df['station_id'].nunique()} station(s)."
+                )
+            else:
+                # Guarantee the biomass columns exist so FINAL_COLUMNS filtering
+                # is consistent regardless of whether biomass was requested.
+                for col in ('cgdd_60d_ap', 'rain_60d_ap', 'cgdd_60d_bt',
+                            'biomass_lb_acre', 'biomass_color', 'biomass_message'):
+                    merged[col] = np.nan
+
+            # 6) Compute disease risks (parallelised for large datasets)
             chunks = chunk_dataframe(merged, os.cpu_count() or 1)
             with ProcessPoolExecutor() as exe:
                 futures   = [exe.submit(compute_risks, c) for c in chunks]
                 processed = [f.result() for f in as_completed(futures)]
             final = pd.concat(processed, ignore_index=True)
 
-            # 6) Finalize dates
+            # 7) Finalise dates
             final['date'] = pd.to_datetime(final['date'])
             final['forecasting_date'] = (
                 final['date'] + timedelta(days=1)
             ).dt.strftime('%Y-%m-%d')
 
-            # Return only columns that actually exist (guards against partial data)
+            # Only return columns that actually exist (guards partial data)
             available = [c for c in FINAL_COLUMNS if c in final.columns]
             return final[available]
 
@@ -416,12 +525,35 @@ async def retrieve_tarspot_all_stations_async(input_date, input_station_id=None,
         return None
 
 
-def retrieve(input_date: str, input_station_id: str | None = None, days: int = 1):
+# ─── Public entry points ──────────────────────────────────────────────────────
+
+def retrieve(
+    input_date: str,
+    input_station_id: str | None = None,
+    days: int = 1,
+    planting_date: str | None = None,
+    termination_date: str | None = None,
+):
     """
-    BUG FIX: The original `retrieve()` called a non-existent `create_session()`
-    function, so it always returned None immediately before even running the
-    async logic. Fixed to call `asyncio.run()` directly on the async function.
+    Synchronous wrapper around the async pipeline.
+
+    Args:
+        input_date:        The reference date for disease-risk rolling averages
+                           (YYYY-MM-DD).
+        input_station_id:  Limit results to a single station (optional).
+        days:              How many recent days of risk values to return.
+        planting_date:     Cover-crop planting date for biomass estimation
+                           (YYYY-MM-DD, optional).
+        termination_date:  Cover-crop termination date for biomass estimation
+                           (YYYY-MM-DD, optional).
+
+    Returns:
+        pd.DataFrame with disease-risk columns and, when crop dates are
+        supplied, the biomass columns (cgdd_60d_ap, rain_60d_ap, cgdd_60d_bt,
+        biomass_lb_acre, biomass_color, biomass_message).
     """
     return asyncio.run(
-        retrieve_tarspot_all_stations_async(input_date, input_station_id, days)
+        retrieve_tarspot_all_stations_async(
+            input_date, input_station_id, days, planting_date, termination_date
+        )
     )

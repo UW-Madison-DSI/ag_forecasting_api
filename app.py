@@ -60,7 +60,6 @@ _STATIC_FIELDS_JSON = [
 ]
 
 # Build a reusable list of Field objects from the static registry.
-# This replaces the old call to the deprecated /fields/?legacy_only=True endpoint.
 ALL_FIELDS: list[Field] = [Field(**f) for f in _STATIC_FIELDS_JSON]
 
 
@@ -70,12 +69,10 @@ def get_station_fields(station_id: str) -> list[Field]:
 
     Strategy:
       1. Try the per-station endpoint /fields/{station_id}/available_fields
-         (this is the current live endpoint).
-      2. Fall back to the static ALL_FIELDS registry if the request fails
-         (e.g. during tests or if the station is not yet indexed).
+      2. Fall back to ALL_FIELDS if the request fails.
     """
     try:
-        return station_fields(station_id)   # from pywisconet.data
+        return station_fields(station_id)
     except Exception:
         return ALL_FIELDS
 
@@ -101,8 +98,6 @@ def bulk_measures_query(
             'standard_name', 'units_abbrev']
 
     if measurements is not None:
-        # Fetch real Field objects — either from the live per-station endpoint
-        # or from the static fallback registry.
         this_station_fields = get_station_fields(station_id)
 
         if measurements == 'ALL':
@@ -233,7 +228,6 @@ def wisconet_geojson_grouped(
             lat = first_row["latitude"]
             lon = first_row["longitude"]
 
-            # Build time series list
             time_series = group.drop(
                 columns=["latitude", "longitude"]
             ).to_dict(orient="records")
@@ -266,22 +260,118 @@ def wisconet_geojson_grouped(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ---------------------------------------------------------------------------
+# Biomass endpoints
+# ---------------------------------------------------------------------------
+
+@app.get("/ag_models_wrappers/wisconet_biomass")
+def all_data_from_wisconet_biomass_query(
+    forecasting_date: str,
+    planting_date: str = Query(..., description="Cover-crop planting date (YYYY-MM-DD)"),
+    termination_date: str = Query(..., description="Cover-crop termination date (YYYY-MM-DD)"),
+    risk_days: int = 1,
+    station_id: str = None,
+):
+    """
+    Returns disease-risk data **and** cereal-rye biomass estimates for every
+    Wisconet station (or a single station when station_id is supplied).
+
+    Extra columns in the response:
+      - cgdd_60d_ap      : cumulative GDD for the 60 days after planting
+      - rain_60d_ap      : total rainfall (in) for the 60 days after planting
+      - cgdd_60d_bt      : cumulative GDD for the 30 days before termination
+      - biomass_lb_acre  : estimated cereal-rye biomass (lb/acre)
+      - biomass_color    : risk colour (Gray / Yellow / Green)
+      - biomass_message  : plain-language interpretation
+    """
+    try:
+        df = retrieve(
+            input_date=forecasting_date,
+            input_station_id=station_id,
+            days=risk_days,
+            planting_date=planting_date,
+            termination_date=termination_date,
+        )
+        if df is None or len(df) == 0:
+            return {}
+        df_cleaned = df.replace([np.inf, -np.inf, np.nan], None).where(pd.notnull(df), None)
+        return df_cleaned.to_dict(orient="records")
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid input: {e}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
+
+
+@app.get("/ag_models_wrappers/wisconet_biomass_g")
+def wisconet_biomass_geojson_grouped(
+    forecasting_date: str,
+    planting_date: str = Query(..., description="Cover-crop planting date (YYYY-MM-DD)"),
+    termination_date: str = Query(..., description="Cover-crop termination date (YYYY-MM-DD)"),
+    risk_days: int = 1,
+    station_id: str = None,
+):
+    """
+    GeoJSON FeatureCollection variant of /ag_models_wrappers/wisconet_biomass.
+    Each feature's `time_series` list contains both disease-risk and biomass fields.
+    """
+    try:
+        df = retrieve(
+            input_date=forecasting_date,
+            input_station_id=station_id,
+            days=risk_days,
+            planting_date=planting_date,
+            termination_date=termination_date,
+        )
+
+        if df is None or len(df) == 0:
+            return {"type": "FeatureCollection", "features": []}
+
+        df = df.replace([np.inf, -np.inf, np.nan], None)
+        features = []
+
+        for station, group in df.groupby("station_id"):
+            first_row = group.iloc[0]
+            time_series = group.drop(
+                columns=["latitude", "longitude"]
+            ).to_dict(orient="records")
+
+            feature = {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [first_row["longitude"], first_row["latitude"]]
+                },
+                "properties": {
+                    "station_id":   station,
+                    "station_name": first_row["station_name"],
+                    "city":         first_row["city"],
+                    "county":       first_row["county"],
+                    "region":       first_row["region"],
+                    "state":        first_row["state"],
+                    "time_series":  time_series,
+                }
+            }
+            features.append(feature)
+
+        return {"type": "FeatureCollection", "features": features}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the Wisconsin Weather API"}
 
-# Remove the WSGI code - it's not needed for FastAPI
 
-
-# Create a WSGI application
+# ---------------------------------------------------------------------------
+# WSGI shim (kept for backward compatibility)
+# ---------------------------------------------------------------------------
 from starlette.applications import Starlette
 from starlette.routing import Mount
 from starlette.types import ASGIApp
 
 def create_wsgi_app():
-    """
-    Create a WSGI app to handle HTTP requests for the FastAPI application.
-    """
     async def app(scope, receive, send):
         if scope["type"] == "http":
             await app(scope, receive, send)
@@ -295,7 +385,6 @@ def create_wsgi_app():
                 "type": "http.response.body",
                 "body": b"Not Found"
             })
-
     return app
 
 wsgi_app = WSGIMiddleware(create_wsgi_app())

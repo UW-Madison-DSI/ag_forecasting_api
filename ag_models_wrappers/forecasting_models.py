@@ -273,6 +273,36 @@ def calculate_frogeye_leaf_spot_function(maxAT30, rh80tot30):
             else:
                 risk_class = 'NoData'
 
-
-
     return pd.Series({"fe_risk": prob_logit_fe, "fe_risk_class": risk_class})
+
+
+def cereal_rye_report(cgdd_ap, rain_ap, cgdd_bt):
+    # 1. Calculate base biomass (assuming original coefficients are kg/ha)
+    # If your coefficients already result in lb/acre, remove the 0.892 conversion.
+    biomass_kgha = -5725.79 + (6.19 * cgdd_ap) - (403.59 * rain_ap) + (7.02 * cgdd_bt)
+
+    # Convert kg/ha to lb/acre (1 kg/ha ≈ 0.892179 lb/acre)
+    biomass_lb_acre = max(0, biomass_kgha * 0.892)
+
+    # 2. Determine Color and Text based on thresholds
+    if biomass_lb_acre <= 1999:
+        color = "Gray"
+        status_text = ("Reduction in nitrate leaching, with limited reduction "
+                       "in soil erosion and phosphorus loss in runoff.")
+
+    elif 2000 <= biomass_lb_acre <= 4500:
+        color = "Yellow"
+        status_text = ("Significant reduction in soil erosion, phosphorus loss in runoff, "
+                       "and nitrate leaching, with limited weed suppression.")
+
+    else:  # Biomass is > 4500
+        color = "Green"
+        status_text = ("Significant weed suppression, reduction in soil erosion, "
+                       "reduction in phosphorus loss in runoff, and mitigation of nitrate leaching.")
+
+    # 3. Return a structured report
+    return {
+        "biomass": round(biomass_lb_acre, 2),
+        "color": color,
+        "message": status_text
+    }
