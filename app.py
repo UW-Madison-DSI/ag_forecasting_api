@@ -206,6 +206,66 @@ def all_data_from_wisconet_query(
         raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
 
 
+@app.get("/ag_models_wrappers/wisconet_g")
+def wisconet_geojson_grouped(
+    forecasting_date: str,
+    risk_days: int = 1,
+    station_id: str = None
+):
+    try:
+        df = retrieve(
+            input_date=forecasting_date,
+            input_station_id=station_id,
+            days=risk_days
+        )
+
+        if df is None or len(df) == 0:
+            return {"type": "FeatureCollection", "features": []}
+
+        df = df.replace([np.inf, -np.inf, np.nan], None)
+
+        features = []
+
+        for station, group in df.groupby("station_id"):
+
+            first_row = group.iloc[0]
+
+            lat = first_row["latitude"]
+            lon = first_row["longitude"]
+
+            # Build time series list
+            time_series = group.drop(
+                columns=["latitude", "longitude"]
+            ).to_dict(orient="records")
+
+            feature = {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [lon, lat]
+                },
+                "properties": {
+                    "station_id": station,
+                    "station_name": first_row["station_name"],
+                    "city": first_row["city"],
+                    "county": first_row["county"],
+                    "region": first_row["region"],
+                    "state": first_row["state"],
+                    "time_series": time_series
+                }
+            }
+
+            features.append(feature)
+
+        return {
+            "type": "FeatureCollection",
+            "features": features
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the Wisconsin Weather API"}
