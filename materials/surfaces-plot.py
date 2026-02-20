@@ -31,7 +31,7 @@ def logistic_f(logit):
 
 def plot_risk_surfaces():
     """
-    Generate surface plots for all disease risk models
+    Generate surface plots for all disease models models
     """
     # Set up figure with subplots
     fig = plt.figure(figsize=(20, 25))
@@ -247,7 +247,7 @@ def logistic_f(x):
 
 def plot_risk_surfaces():
     """
-    Generate surface plots for all disease risk models and export to HTML.
+    Generate surface plots for all disease models models and export to HTML.
     """
     # Create the main figure
     fig = plt.figure(figsize=(20, 25))
@@ -451,7 +451,7 @@ def plot_risk_surfaces():
     html_str = mpld3.fig_to_html(fig)
 
     # Save the HTML string to a file
-    with open("risk_models.html", "w") as f:
+    with open("models.html", "w") as f:
         f.write(html_str)
 
     # Display the plot
