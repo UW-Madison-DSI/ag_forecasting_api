@@ -12,9 +12,9 @@ services:
       - ENVIRONMENT=production
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.ag_forecasting_api.rule=Host(`ag-forecasting-api.services.dsi.wisc.edu`)"
-      - "traefik.http.routers.ag_forecasting_api.tls=true"
-      - "traefik.http.routers.ag_forecasting_api.tls.certresolver=myresolver"
+      - "traefik.http.utils.ag_forecasting_api.rule=Host(`ag-forecasting-api.services.dsi.wisc.edu`)"
+      - "traefik.http.utils.ag_forecasting_api.tls=true"
+      - "traefik.http.utils.ag_forecasting_api.tls.certresolver=myresolver"
       - "traefik.http.services.ag_forecasting_api.loadbalancer.server.port=8000"
     networks:
       - traefik_network

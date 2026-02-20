@@ -15,9 +15,10 @@ import os
 from pywisconet.data import *
 from pywisconet.process import *
 
-from ag_models_wrappers.process_ibm_risk_v2 import *
-from ag_models_wrappers.process_wisconet import *
-
+#from ag_models_wrappers.process_ibm_risk_v2 import *
+#from ag_models_wrappers.process_wisconet import *
+from api import *                          # was: from ag_models_wrappers.process_wisconet import *
+from api.services.ibm_service import get_weather_with_risk   # was: from ag_models_wrappers.process_ibm_risk_v2 import *
 
 app = FastAPI()
 
@@ -172,7 +173,7 @@ def all_data_from_ibm_query(
         ORG_ID: str = Query(..., description="organization id")
 ):
     try:
-        weather_data = get_weather(latitude, longitude, forecasting_date,
+        weather_data = get_weather_with_risk(latitude, longitude, forecasting_date,
                                    ORG_ID, TENANT_ID, API_KEY)
         df = weather_data['daily']
         df_cleaned = df.replace([np.inf, -np.inf, np.nan], None).where(pd.notnull(df), None)
