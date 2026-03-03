@@ -202,7 +202,9 @@ def all_data_from_wisconet_query(
         raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
 
 
-@app.get("/ag_models_wrappers/wisconet_g")
+from api.schemas.geojson_schema import FeatureCollection
+
+@app.get("/ag_models_wrappers/wisconet_g", response_model=FeatureCollection)
 def wisconet_geojson_grouped(
     forecasting_date: str,
     risk_days: int = 1,
@@ -252,10 +254,11 @@ def wisconet_geojson_grouped(
 
             features.append(feature)
 
-        return {
-            "type": "FeatureCollection",
-            "features": features
-        }
+        return FeatureCollection(
+            type="FeatureCollection",
+            fields=YOUR_FIELDS_LIST,
+            features=features
+        )
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
