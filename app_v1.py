@@ -21,9 +21,14 @@ from api import *                          # was: from ag_models_wrappers.proces
 from api.services.ibm_service import get_weather_with_risk   # was: from ag_models_wrappers.process_ibm_risk_v2 import *
 
 #app = FastAPI()
+from fastapi import FastAPI
+
 app_v1 = FastAPI(
-    title="Ag Forecasting API",
-    version="1.0.0"
+    title="Ag Forecasting API - Legacy",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json"
 )
 # ---------------------------------------------------------------------------
 # Static field registry

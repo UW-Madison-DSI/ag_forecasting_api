@@ -23,6 +23,13 @@ app.include_router(
     tags=["Disease Models"]
 )
 
-@app.get("/")
+@app.get("/", tags=["Meta"])
 def root():
-    return {"message": "Ag Forecasting API — v1 and v2 available"}
+    return {
+        "api_name": "Ag Forecasting API",
+        "available_versions": {
+            "v1": "/v1/docs",
+            "v2": "/docs"
+        },
+        "current_default": "v2"
+    }
