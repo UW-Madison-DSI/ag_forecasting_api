@@ -7,8 +7,8 @@ GET /models/{model_id}   → detailed metadata for one model
 
 from fastapi import APIRouter, HTTPException, Path
 
-from app.registry import ALL_MODEL_IDS, MODELS, get_model
-from app.schemas.predictions import ModelDetail, ModelSummary
+from app_v1.registry import ALL_MODEL_IDS, MODELS, get_model
+from app_v1.schemas.predictions import ModelDetail, ModelSummary
 
 router = APIRouter(prefix="/models", tags=["Models"])
 

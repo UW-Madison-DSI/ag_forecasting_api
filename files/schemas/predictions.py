@@ -19,9 +19,9 @@ from fastapi import APIRouter, HTTPException, Path, Query
 
 from api import retrieve
 from api.services.ibm_service import get_weather_with_risk
-from app.dependencies import DateRangeDep, FormatDep, IncludeMetaDep, ModelsDep
-from app.formatters import to_feature_collection, to_legacy_json
-from app.schemas.predictions import PredictionFeatureCollection
+from app_v1.dependencies import DateRangeDep, FormatDep, IncludeMetaDep, ModelsDep
+from app_v1.formatters import to_feature_collection, to_legacy_json
+from app_v1.schemas.predictions import PredictionFeatureCollection
 
 router = APIRouter(tags=["Predictions"])
 

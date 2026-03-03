@@ -22,7 +22,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 from fastapi import APIRouter, FastAPI
 from fastapi.responses import JSONResponse
 
-from app.routers import (
+from app_v1.routers import (
     measurements_router,
     models_router,
     predictions_router,

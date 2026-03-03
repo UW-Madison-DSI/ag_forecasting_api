@@ -13,7 +13,7 @@ from typing import Annotated, Literal, Optional
 
 from fastapi import Depends, HTTPException, Query
 
-from app.registry import ALL_MODEL_IDS, validate_models
+from app_v1.registry import ALL_MODEL_IDS, validate_models
 
 MAX_DATE_RANGE_DAYS = 90
 

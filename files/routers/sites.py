@@ -11,7 +11,7 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, Path, Query
 
 from api import retrieve
-from app.schemas.stations import StationFeature, StationFeatureCollection, StationProperties
+from app_v1.schemas.stations import StationFeature, StationFeatureCollection, StationProperties
 
 router = APIRouter(prefix="/sites", tags=["Sites"])
 

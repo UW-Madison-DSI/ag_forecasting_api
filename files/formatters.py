@@ -13,8 +13,8 @@ from typing import Any
 
 import pandas as pd
 
-from app.registry import MODELS
-from app.schemas.predictions import (
+from app_v1.registry import MODELS
+from app_v1.schemas.predictions import (
     PredictionFeature,
     PredictionFeatureCollection,
     PredictionProperties,
