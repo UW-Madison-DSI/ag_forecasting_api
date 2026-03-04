@@ -15,7 +15,7 @@ Units
 """
 
 import pandas as pd
-
+import math
 from api.utils.math_helpers import logistic, compute_logit
 
 # ── Sentinel values ────────────────────────────────────────────────────────────
@@ -28,7 +28,6 @@ _NO_DATA_CLASS: str = "NoData"
 
 def _is_missing(value) -> bool:
     """True when a value is None or a float NaN."""
-    import math
     if value is None:
         return True
     try:

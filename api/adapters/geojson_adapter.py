@@ -64,6 +64,7 @@ def dataframe_to_featurecollection(df: pd.DataFrame):
         fields.append(
             StandardMeasure(
                 fieldname=col,
+                disease=col.replace("_risk","").replace("_class",""),
                 measure=col,
                 frequency="daily",
                 units=None,
