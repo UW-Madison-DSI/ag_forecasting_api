@@ -5,7 +5,7 @@ from datetime import datetime
 
 class StandardMeasure(BaseModel):
     fieldname: str
-    disease: str
+    #disease: str
     measure: str
     frequency: Optional[str] = None
     units: Optional[str] = None

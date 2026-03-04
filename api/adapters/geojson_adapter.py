@@ -61,11 +61,27 @@ def dataframe_to_featurecollection(df: pd.DataFrame):
         else:
             data_type = "STR"
 
+        # Define your mapping once
+        label_map = {
+            "_nirr": "",
+            "_irr_30in": "",
+            "_irr_15in": "",
+            "_risk": "",
+            "_class": "",
+            "gls": "gray_leaf_spot",
+            "fe": "frog_eye_leaf_spot",
+        }
+
+        measure = col
+        # Sort by key length descending to avoid partial substring replacements
+        for old, new in sorted(label_map.items(), key=lambda x: len(x[0]), reverse=True):
+            measure = measure.replace(old, new)
+
         fields.append(
             StandardMeasure(
                 fieldname=col,
-                disease=col.replace("_risk","").replace("_class",""),
-                measure=col,
+                #disease=col.replace("_risk","").replace("_class",""),
+                measure=measure,
                 frequency="daily",
                 units=None,
                 aggregation=None,
