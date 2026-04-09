@@ -25,7 +25,8 @@ today = date.today()
 
 # ─── Constants ────────────────────────────────────────────────────────────────
 BATCH_SIZE = 20
-BASE_URL = "https://wisconet.wisc.edu/api/v1"
+domain = 'api3.wisconet.wisc.edu'
+BASE_URL = f"https://{domain}/api/v1"
 MIN_DAYS_ACTIVE = 38
 
 MEASUREMENTS_CACHE_DIR = "station_measurements_cache"

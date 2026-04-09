@@ -33,3 +33,11 @@ def root():
         },
         "current_default": "v2"
     }
+
+from fastapi import Request
+
+@app.get("/debug/ip")
+def get_ip(request: Request):
+    client_ip = request.client.host
+    print(f"Client IP: {client_ip}")
+    return {"client_ip": client_ip}
