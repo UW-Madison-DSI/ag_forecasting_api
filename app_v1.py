@@ -173,16 +173,24 @@ def stations_query(
 
 @app_v1.get("/ag_models_wrappers/ibm")
 def all_data_from_ibm_query(
-        forecasting_date: str,
-        latitude: float = Query(..., description="Latitude of the location"),
-        longitude: float = Query(..., description="Longitude of the location"),
-        API_KEY: str = Query(..., description="api key"),
-        TENANT_ID: str = Query(..., description="Tenant id"),
-        ORG_ID: str = Query(..., description="organization id")
+    forecasting_date: str,
+    latitude: float = Query(..., description="Latitude of the location"),
+    longitude: float = Query(..., description="Longitude of the location"),
+    API_KEY: str = Query(..., description="api key"),
+    TENANT_ID: str = Query(..., description="Tenant id"),
+    ORG_ID: str = Query(..., description="organization id"),
+    planting_date: str | None = Query(None, description="Cover crop planting date for rye biomass, YYYY-MM-DD"),
 ):
     try:
-        weather_data = get_weather_with_risk(latitude, longitude, forecasting_date,
-                                   ORG_ID, TENANT_ID, API_KEY)
+        weather_data = get_weather_with_risk(
+            latitude,
+            longitude,
+            forecasting_date,
+            ORG_ID,
+            TENANT_ID,
+            API_KEY,
+            planting_date=planting_date,
+        )
         df = weather_data['daily']
         df_cleaned = df.replace([np.inf, -np.inf, np.nan], None).where(pd.notnull(df), None)
         return df_cleaned.to_dict(orient="records")

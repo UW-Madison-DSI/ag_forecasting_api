@@ -6,6 +6,15 @@ __pycache__/
 
 # C extensions
 *.so
+ag_models_wrappers/__pycache__/
+api/__pycache__/
+api/config/__pycache__/
+api/adapters/__pycache__/
+api/models/__pycache__/
+api/routes/__pycache__/
+api/schemas/__pycache__/
+api/services/__pycache__/
+pywisconet/__pycache__/
 
 # Distribution / packaging
 .Python
