@@ -306,3 +306,63 @@ def cereal_rye_report(cgdd_ap, rain_ap, cgdd_bt):
         "color": color,
         "message": status_text
     }
+
+def calculate_winter_rye_biomass(plant_doy, precip_fall, gdd_total):
+    """
+    Calculate winter rye biomass based on the model from bzbradford/ibm-weather-tool.
+    
+    Args:
+        plant_doy: Planting day of year
+        precip_fall: Precipitation (mm) between planting date and Dec 31
+        gdd_total: Cumulative sine GDD base 0C
+        
+    Returns:
+        Biomass in lb/acre
+    """
+    # Coefficients from the NLS model
+    b0 = 423.1
+    b_pd = -1.031
+    b_pf = -0.2878
+    k = 0.003663
+    x0 = 1049.0
+    
+    # Calculate prediction
+    pred = (b0 + b_pd * plant_doy + b_pf * precip_fall) / (1 + np.exp(-k * (gdd_total - x0)))
+    
+    # Biomass is pred squared
+    biomass = pred ** 2
+    
+    return max(0, biomass)
+
+def gdd_sine(tmin, tmax, base_temp=0, max_temp=35):
+    """
+    Calculate Growing Degree Days using sine wave approximation.
+    
+    Args:
+        tmin: Minimum daily temperature (Celsius)
+        tmax: Maximum daily temperature (Celsius)
+        base_temp: Base temperature (default 0C)
+        max_temp: Maximum temperature cap (default 35C)
+        
+    Returns:
+        Daily GDD value
+    """
+    # Cap temperatures
+    tmin = min(max(tmin, base_temp), max_temp)
+    tmax = min(max(tmax, base_temp), max_temp)
+    
+    if tmax <= tmin:
+        return 0
+    
+    # Average temperature
+    tavg = (tmax + tmin) / 2
+    
+    if tavg <= base_temp:
+        return 0
+    
+    # Sine wave approximation
+    import math
+    amplitude = (tmax - tmin) / 2
+    gdd = (tavg - base_temp) - (amplitude / math.pi) * math.cos(math.pi * (tmax - tmin) / (2 * amplitude))
+    
+    return max(0, gdd)

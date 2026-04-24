@@ -13,7 +13,8 @@ from ag_models_wrappers.forecasting_models import (
     calculate_gray_leaf_spot_risk_function,
     calculate_frogeye_leaf_spot_function,
     calculate_irrigated_risk,
-    calculate_non_irrigated_risk
+    calculate_non_irrigated_risk,
+    calculate_winter_rye_biomass
 )
 
 

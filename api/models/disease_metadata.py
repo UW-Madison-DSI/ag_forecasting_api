@@ -73,5 +73,21 @@ DISEASE_MODELS: Dict[str, dict] = {
         "CPN": "https://cropprotectionnetwork.org/encyclopedia/gray-leaf-spot-of-corn",
         "model_type": "Logistic regression",
         "version": "1.0"
+    },
+    "winter_rye_biomass": {
+        "name": "Winter rye biomass",
+        "crop": "rye",
+        "description": (
+            "This cover crop termination model predicts biomass accumulation in overwintering rye. Start date should be set to the fall planting date and biomass predictions will be made through the end date. This model is an early prototype trained on data from Wisconsin. Actual yields will depend on additional factors not included in the model such as rye cultivar, soil type, and nitrogen inputs."
+        ),
+        "variables": [
+            "plant_doy",
+            "precip_fall",
+            "gdd_total"
+        ],
+        "model_type": "Non-linear regression",
+        "output": "Biomass in lb/acre",
+        "inactive_rule": "None",
+        "version": "1.0"
     }
 }
