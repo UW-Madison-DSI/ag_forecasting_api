@@ -244,14 +244,24 @@ def _annotate_risks(daily: pd.DataFrame, planting_date: str | None = None) -> pd
 def _annotate_winter_rye_biomass(daily: pd.DataFrame, planting_date: str | None = None) -> pd.DataFrame:
     """Append winter rye biomass estimates when a planting date is provided."""
     if not planting_date:
+        logger.info("No planting_date provided; skipping rye biomass annotation.")
         return daily
 
-    start_date = datetime.strptime(planting_date, "%Y-%m-%d").date()
+    try:
+        start_date = datetime.strptime(planting_date, "%Y-%m-%d").date()
+        logger.info("Rye biomass: planting_date=%s (doy=%d)", planting_date, start_date.timetuple().tm_yday)
+    except Exception as e:
+        logger.error("Failed to parse planting_date '%s': %s", planting_date, e)
+        return daily
+
     daily = daily.copy()
     daily = daily.sort_values("date")
 
     rye_daily = daily[daily["date"] >= start_date].copy()
+    logger.info("Rye biomass: filtered to %d rows after planting date %s", len(rye_daily), planting_date)
+    
     if rye_daily.empty:
+        logger.warning("No data after planting date %s", planting_date)
         return daily
 
     rye_daily["plant_doy"] = start_date.timetuple().tm_yday
@@ -266,6 +276,9 @@ def _annotate_winter_rye_biomass(daily: pd.DataFrame, planting_date: str | None 
         * (rye_daily["date"].apply(lambda d: d.year) == start_date.year)
     ).cumsum()
 
+    logger.info("Rye biomass: sample GDD values: %s", rye_daily["gdd_total"].tail(3).tolist())
+    logger.info("Rye biomass: sample precip values: %s", rye_daily["precip_fall"].tail(3).tolist())
+
     biomass_reports = rye_daily.apply(
         lambda row: calculate_winter_rye_biomass(
             int(row["plant_doy"]),
@@ -278,11 +291,14 @@ def _annotate_winter_rye_biomass(daily: pd.DataFrame, planting_date: str | None 
     rye_daily["biomass_color"] = biomass_reports.apply(lambda v: v["biomass_color"])
     rye_daily["biomass_message"] = biomass_reports.apply(lambda v: v["biomass_message"])
 
+    logger.info("Rye biomass: sample biomass values: %s", rye_daily["biomass_lb_acre"].tail(3).tolist())
+
     daily = daily.merge(
         rye_daily[["date", "biomass_lb_acre", "biomass_color", "biomass_message"]],
         on="date",
         how="left",
     )
+    logger.info("Rye biomass annotation complete.")
     return daily
 
 

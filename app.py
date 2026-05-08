@@ -65,3 +65,25 @@ def root():
         },
         "current_default": "v2"
     }
+
+@app.get("/v2/test/rye_biomass", tags=["Testing"])
+def test_rye_biomass():
+    """Test endpoint to verify rye biomass calculation with sample data."""
+    from api.models.risk_models import calculate_winter_rye_biomass
+    
+    # Test case: mid-September planting (doy ~260), moderate precip (100mm), spring growth (1500 GDD)
+    result = calculate_winter_rye_biomass(
+        plant_doy=260,      # ~Sep 16
+        precip_fall=100.0,  # mm
+        gdd_total=1500.0    # °C base 0
+    )
+    
+    return {
+        "test_input": {
+            "plant_doy": 260,
+            "precip_fall_mm": 100.0,
+            "gdd_total_c": 1500.0,
+            "interpretation": "Mid-September planting, 100mm fall precip, 1500 GDD by forecast date"
+        },
+        "biomass_prediction": result
+    }
