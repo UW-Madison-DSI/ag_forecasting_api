@@ -84,9 +84,10 @@ FINAL_COLUMNS: list[str] = [
     "whitemold_nirr_risk", "whitemold_nirr_risk_class",
     "whitemold_irr_30in_risk", "whitemold_irr_15in_risk",
     "whitemold_irr_15in_class", "whitemold_irr_30in_class",
-    # biomass (present only when planting_date / termination_date are supplied)
-    "cgdd_60d_ap", "rain_60d_ap", "cgdd_60d_bt",
+    # Winter rye biomass (present when planting_date is supplied)
     "biomass_lb_acre", "biomass_color", "biomass_message",
+    # WiscoNet biomass (present when planting_date and termination_date supplied)
+    "cgdd_60d_ap", "rain_60d_ap", "cgdd_60d_bt",
 ]
 
 STATION_META_COLS: list[str] = [
@@ -95,6 +96,6 @@ STATION_META_COLS: list[str] = [
 ]
 
 BIOMASS_COLS: list[str] = [
-    "cgdd_60d_ap", "rain_60d_ap", "cgdd_60d_bt",
     "biomass_lb_acre", "biomass_color", "biomass_message",
+    "cgdd_60d_ap", "rain_60d_ap", "cgdd_60d_bt",
 ]

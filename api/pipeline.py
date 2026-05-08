@@ -32,6 +32,7 @@ from api.services.wisconet_service import (
     fetch_biomass_in_batches,
     fetch_measurements_in_batches,
     load_stations,
+    _compute_winter_rye_biomass,
 )
 
 logger = logging.getLogger(__name__)
@@ -101,13 +102,29 @@ async def _run_pipeline(
                 logger.warning("Metadata merge produced an empty DataFrame.")
                 return None
 
-            # 4) Merge biomass ─────────────────────────────────────────────────
+            # 4) Compute winter rye biomass (optional, if planting_date provided) ─────
+            if planting_date:
+                logger.info("Computing winter rye biomass for planting date %s", planting_date)
+                merged = merged.apply(
+                    lambda station_group: _compute_winter_rye_biomass(
+                        station_group, planting_date
+                    ),
+                    axis=0,
+                )
+                logger.info("Winter rye biomass computed.")
+            else:
+                for col in ["biomass_lb_acre", "biomass_color", "biomass_message"]:
+                    if col not in merged.columns:
+                        merged[col] = np.nan
+
+            # 5) Merge biomass (WiscoNet API if both planting and termination dates) ────
             if biomass_df is not None and not biomass_df.empty:
                 merged = pd.merge(merged, biomass_df, on="station_id", how="left")
-                logger.info("Biomass merged for %d station(s).", biomass_df["station_id"].nunique())
+                logger.info("WiscoNet biomass merged for %d station(s).", biomass_df["station_id"].nunique())
             else:
-                for col in BIOMASS_COLS:
-                    merged[col] = np.nan
+                for col in ["cgdd_60d_ap", "rain_60d_ap", "cgdd_60d_bt"]:
+                    if col not in merged.columns:
+                        merged[col] = np.nan
 
             # 5) Parallel risk computation ──────────────────────────────────
             chunks = chunk_dataframe(merged, os.cpu_count() or 1)

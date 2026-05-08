@@ -284,3 +284,55 @@ def calculate_cereal_rye_biomass(
         )
 
     return {"biomass": round(biomass_lb_acre, 2), "color": color, "message": message}
+
+
+def calculate_winter_rye_biomass(
+    plant_doy: int,
+    precip_fall: float,
+    gdd_total: float,
+) -> dict:
+    """
+    Calculate winter rye biomass from planting date, fall precipitation, and cumulative GDD.
+
+    This implements the model logic from the referenced IBM weather tool R code.
+    """
+    if _is_missing(plant_doy) or _is_missing(precip_fall) or _is_missing(gdd_total):
+        return {
+            "biomass_lb_acre": float("nan"),
+            "biomass_color": None,
+            "biomass_message": None,
+        }
+
+    b0 = 423.1
+    b_pd = -1.031
+    b_pf = -0.2878
+    k = 0.003663
+    x0 = 1049.0
+
+    pred = (b0 + b_pd * plant_doy + b_pf * precip_fall) / (1 + np.exp(-k * (gdd_total - x0)))
+    biomass = max(0.0, pred ** 2)
+
+    if biomass < 2000:
+        color = "Gray"
+        message = (
+            "Predicted biomass is low, which may provide limited weed suppression "
+            "and soil protection."
+        )
+    elif biomass < 4500:
+        color = "Yellow"
+        message = (
+            "Predicted biomass is moderate, which may provide useful soil coverage "
+            "and nitrogen scavenging."
+        )
+    else:
+        color = "Green"
+        message = (
+            "Predicted biomass is high, which should provide strong cover crop benefits "
+            "including soil protection and weed suppression."
+        )
+
+    return {
+        "biomass_lb_acre": round(biomass, 2),
+        "biomass_color": color,
+        "biomass_message": message,
+    }

@@ -31,6 +31,8 @@ from api.models.risk_models import (
     calculate_whitemold_irrigated_risk,
     calculate_whitemold_non_irrigated_risk,
 )
+from api.models.risk_models import calculate_winter_rye_biomass
+from api.utils.math_helpers import gdd_sine
 from api.utils.conversions import kmh_to_mps
 from api.utils.math_helpers import rolling_mean
 
@@ -192,7 +194,7 @@ def _build_daily(hourly: pd.DataFrame) -> pd.DataFrame:
 
 # ── Risk annotation ────────────────────────────────────────────────────────────
 
-def _annotate_risks(daily: pd.DataFrame) -> pd.DataFrame:
+def _annotate_risks(daily: pd.DataFrame, planting_date: str | None = None) -> pd.DataFrame:
     """Append disease-risk columns to the IBM daily DataFrame."""
     daily = daily.copy()
 
@@ -234,6 +236,69 @@ def _annotate_risks(daily: pd.DataFrame) -> pd.DataFrame:
         axis=1,
     ))
 
+    daily = _annotate_winter_rye_biomass(daily, planting_date)
+
+    return daily
+
+
+def _annotate_winter_rye_biomass(daily: pd.DataFrame, planting_date: str | None = None) -> pd.DataFrame:
+    """Append winter rye biomass estimates when a planting date is provided."""
+    if not planting_date:
+        logger.info("No planting_date provided; skipping rye biomass annotation.")
+        return daily
+
+    try:
+        start_date = datetime.strptime(planting_date, "%Y-%m-%d").date()
+        logger.info("Rye biomass: planting_date=%s (doy=%d)", planting_date, start_date.timetuple().tm_yday)
+    except Exception as e:
+        logger.error("Failed to parse planting_date '%s': %s", planting_date, e)
+        return daily
+
+    daily = daily.copy()
+    daily = daily.sort_values("date")
+
+    rye_daily = daily[daily["date"] >= start_date].copy()
+    logger.info("Rye biomass: filtered to %d rows after planting date %s", len(rye_daily), planting_date)
+    
+    if rye_daily.empty:
+        logger.warning("No data after planting date %s", planting_date)
+        return daily
+
+    rye_daily["plant_doy"] = start_date.timetuple().tm_yday
+    rye_daily["precip_daily"] = rye_daily["precip1Hour_sum"].fillna(0.0)
+    rye_daily["gdd_0C"] = rye_daily.apply(
+        lambda row: gdd_sine(row["temperature_min"], row["temperature_max"]),
+        axis=1,
+    )
+    rye_daily["gdd_total"] = rye_daily["gdd_0C"].cumsum()
+    rye_daily["precip_fall"] = (
+        rye_daily["precip_daily"]
+        * (rye_daily["date"].apply(lambda d: d.year) == start_date.year)
+    ).cumsum()
+
+    logger.info("Rye biomass: sample GDD values: %s", rye_daily["gdd_total"].tail(3).tolist())
+    logger.info("Rye biomass: sample precip values: %s", rye_daily["precip_fall"].tail(3).tolist())
+
+    biomass_reports = rye_daily.apply(
+        lambda row: calculate_winter_rye_biomass(
+            int(row["plant_doy"]),
+            float(row["precip_fall"]),
+            float(row["gdd_total"]),
+        ),
+        axis=1,
+    )
+    rye_daily["biomass_lb_acre"] = biomass_reports.apply(lambda v: v["biomass_lb_acre"])
+    rye_daily["biomass_color"] = biomass_reports.apply(lambda v: v["biomass_color"])
+    rye_daily["biomass_message"] = biomass_reports.apply(lambda v: v["biomass_message"])
+
+    logger.info("Rye biomass: sample biomass values: %s", rye_daily["biomass_lb_acre"].tail(3).tolist())
+
+    daily = daily.merge(
+        rye_daily[["date", "biomass_lb_acre", "biomass_color", "biomass_message"]],
+        on="date",
+        how="left",
+    )
+    logger.info("Rye biomass annotation complete.")
     return daily
 
 
@@ -248,6 +313,7 @@ def get_weather_with_risk(
     org_id: str,
     tz: str = "US/Central",
     lookback_days: int = 36,
+    planting_date: str | None = None,
 ) -> dict | None:
     """
     Fetch IBM weather data and return both hourly and daily DataFrames,
@@ -261,6 +327,7 @@ def get_weather_with_risk(
         org_id:         IBM EIS organisation ID.
         tz:             Timezone for local-time conversion.
         lookback_days:  Number of days before *end_date* to fetch.
+        planting_date:  Optional cover-crop planting date (YYYY-MM-DD).
 
     Returns:
         ``{"hourly": pd.DataFrame, "daily": pd.DataFrame}`` on success,
@@ -273,8 +340,14 @@ def get_weather_with_risk(
         if not jwt:
             return _failure
 
-        end_dt    = datetime.strptime(end_date, "%Y-%m-%d")
-        start_date = (end_dt - timedelta(days=lookback_days)).strftime("%Y-%m-%d")
+        end_dt = datetime.strptime(end_date, "%Y-%m-%d")
+        if planting_date:
+            planting_dt = datetime.strptime(planting_date, "%Y-%m-%d")
+            if planting_dt > end_dt:
+                raise ValueError("planting_date must be on or before end_date")
+            start_date = planting_date
+        else:
+            start_date = (end_dt - timedelta(days=lookback_days)).strftime("%Y-%m-%d")
 
         raw = _fetch_raw_hourly(lat, lng, start_date, end_date, tenant_id, jwt)
         if raw is None or raw.empty:
@@ -283,7 +356,7 @@ def get_weather_with_risk(
 
         hourly = _build_hourly(raw, tz)
         daily  = _build_daily(hourly)
-        daily  = _annotate_risks(daily)
+        daily  = _annotate_risks(daily, planting_date)
 
         return {"hourly": hourly, "daily": daily}
 

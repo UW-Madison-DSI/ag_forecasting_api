@@ -14,16 +14,16 @@ def wisconet_geojson_grouped(
     forecasting_date: str,
     risk_days: int = 1,
     station_id: str | None = None,
-    #planting_date: str | None = None,
-    #termination_date: str | None = None,
+    planting_date: str | None = None,
+    termination_date: str | None = None,
     disease: str | None = None
 ):
     df = retrieve(
         input_date=forecasting_date,
         input_station_id=station_id,
         days=risk_days,
-        planting_date=None,
-        termination_date=None
+        planting_date=planting_date,
+        termination_date=termination_date
     )
     if disease:
         disease_cols = [

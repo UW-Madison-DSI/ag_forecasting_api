@@ -37,3 +37,27 @@ def compute_logit(intercept: float, terms: list[tuple[float, float]]) -> float:
         intercept - Σ(coef_i × var_i)
     """
     return intercept - sum(coef * var for coef, var in terms)
+
+
+def gdd_sine(
+    tmin: float,
+    tmax: float,
+    base_temp: float = 0,
+    max_temp: float = 35,
+) -> float:
+    """Calculate Growing Degree Days using a sine-wave approximation."""
+    import math
+
+    tmin = min(max(tmin, base_temp), max_temp)
+    tmax = min(max(tmax, base_temp), max_temp)
+
+    if tmax <= tmin:
+        return 0.0
+
+    tavg = (tmin + tmax) / 2.0
+    if tavg <= base_temp:
+        return 0.0
+
+    amplitude = (tmax - tmin) / 2.0
+    gdd = (tavg - base_temp) - (amplitude / math.pi) * math.cos(math.pi * (tmax - tmin) / (2.0 * amplitude))
+    return max(0.0, gdd)

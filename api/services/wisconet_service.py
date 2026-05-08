@@ -40,15 +40,101 @@ from api.config.constants import (
     STATIONS_TO_EXCLUDE,
     WISCONET_BASE_URL,
 )
-from api.models.risk_models import calculate_cereal_rye_biomass
+from api.models.risk_models import calculate_cereal_rye_biomass, calculate_winter_rye_biomass
 from api.utils.cache import ensure_cache_dirs, is_fresh_days, is_fresh_hours
 from api.utils.conversions import fahrenheit_to_celsius
+from api.utils.math_helpers import gdd_sine
 from api.services.http_client import get_with_retry
 
 logger = logging.getLogger(__name__)
 
 # Ensure cache directories exist at import time.
 ensure_cache_dirs(MEASUREMENTS_CACHE_DIR, BIOMASS_CACHE_DIR)
+
+
+# ── Winter Rye Biomass Helper ──────────────────────────────────────────────────
+
+def _compute_winter_rye_biomass(
+    daily_df: pd.DataFrame,
+    planting_date: str,
+) -> pd.DataFrame:
+    """
+    Compute winter rye biomass columns for daily weather data.
+    
+    Adds columns: biomass_lb_acre, biomass_color, biomass_message
+    
+    Args:
+        daily_df: DataFrame with columns date, air_temp_min_c, air_temp_max_c, precip_in
+        planting_date: Date string (YYYY-MM-DD) of rye planting
+    
+    Returns:
+        DataFrame with biomass columns added; NaN if insufficient data.
+    """
+    if daily_df.empty or planting_date is None:
+        return daily_df
+    
+    df = daily_df.copy()
+    df["date"] = pd.to_datetime(df["date"])
+    
+    try:
+        plant_dt = pd.to_datetime(planting_date)
+    except Exception:
+        logger.warning("Invalid planting_date: %s", planting_date)
+        return df
+    
+    # Filter to planting date onward
+    rye_df = df[df["date"] >= plant_dt].copy()
+    if rye_df.empty:
+        logger.warning("No data after planting date %s", planting_date)
+        return df
+    
+    # Plant day-of-year (constant for entire dataset)
+    plant_doy = plant_dt.timetuple().tm_yday
+    rye_df["plant_doy"] = plant_doy
+    
+    # Daily precipitation (convert in to mm: 1 in = 25.4 mm)
+    rye_df["precip_daily_mm"] = (rye_df.get("precip_in", 0.0) * 25.4).fillna(0.0)
+    
+    # Daily GDD (base 0°C, upper 35°C)
+    rye_df["gdd_0c"] = rye_df.apply(
+        lambda row: gdd_sine(
+            row.get("air_temp_min_c", 0),
+            row.get("air_temp_max_c", 0),
+            base_temp=0,
+            max_temp=35
+        ),
+        axis=1
+    )
+    
+    # Cumulative GDD
+    rye_df["gdd_total"] = rye_df["gdd_0c"].cumsum()
+    
+    # Cumulative precipitation (calendar year only)
+    rye_df["precip_fall"] = (
+        rye_df["precip_daily_mm"]
+        * (rye_df["date"].dt.year == plant_dt.year)
+    ).cumsum()
+    
+    # Calculate biomass for each row
+    biomass_results = rye_df.apply(
+        lambda row: calculate_winter_rye_biomass(
+            int(row["plant_doy"]),
+            float(row["precip_fall"]),
+            float(row["gdd_total"])
+        ),
+        axis=1
+    )
+    
+    rye_df["biomass_lb_acre"] = biomass_results.apply(lambda v: v["biomass_lb_acre"])
+    rye_df["biomass_color"] = biomass_results.apply(lambda v: v["biomass_color"])
+    rye_df["biomass_message"] = biomass_results.apply(lambda v: v["biomass_message"])
+    
+    # Merge back to original, keeping all dates
+    biomass_cols = ["date", "biomass_lb_acre", "biomass_color", "biomass_message"]
+    biomass_merge = rye_df[biomass_cols]
+    df = df.merge(biomass_merge, on="date", how="left")
+    
+    return df
 
 
 # ── Station list ───────────────────────────────────────────────────────────────
