@@ -14,6 +14,7 @@ Units
 - Wind speed       : m/s
 """
 
+import numpy as np
 import pandas as pd
 import math
 from api.utils.math_helpers import logistic, compute_logit
